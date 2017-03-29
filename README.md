@@ -87,6 +87,17 @@
 
 ## 关于选股
 可以尝试对alpha率进行动能弥散的计算来判断短期未来，也可以用此来对股票进行排序
+成长率的比较 (period2 - period1) / period1
 
 ## 其它文档
-* [系统架构](docs/arch.md)
+* [系统架构](Docs/arch.md)
+
+## 安装
+### 函数库
+sudo brew install ta-lib
+pip install TA-Lib
+
+### 回测平台
+https://github.com/quantopian/zipline
+http://gbeced.github.io/pyalgotrade
+https://github.com/edouardpoitras/NowTrade
