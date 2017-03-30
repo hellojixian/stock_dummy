@@ -71,6 +71,13 @@ def plot_kchart(secId, quotes):
                  va='top', ha='left', weight='extra bold',
                  color='firebrick', fontsize=10)
 
+    if 'sar' in quotes.columns:
+        for i in range(len(quotes)):
+            if quotes['sar'].values[i] > 0:
+                ax1.scatter(i, quotes['sar'].values[i], color='red', marker='o', alpha=0.6)
+            else:
+                ax1.scatter(i, np.abs(quotes['sar'].values[i]), color='green', marker='o', alpha=0.6)
+
     for i in range(len(quotes)):
         close_price = quotes.loc[:, 'close'].iloc[i]
         open_price = quotes.loc[:, 'open'].iloc[i]
@@ -91,4 +98,4 @@ def plot_kchart(secId, quotes):
             ax1.plot([i, i], [low_price, high_price], color=color)
             ax2.add_patch(patches.Rectangle((i - 0.4, 0), 0.8, vol, fill=True, color=color, alpha=1))
 
-    return plt
+    return [ax1, ax2]
