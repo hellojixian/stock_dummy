@@ -99,3 +99,15 @@ def plot_kchart(secId, quotes):
             ax2.add_patch(patches.Rectangle((i - 0.4, 0), 0.8, vol, fill=True, color=color, alpha=1))
 
     return [ax1, ax2]
+
+
+def animate_data(secId, data):
+    window_size = 0
+    view_size = 80
+    plt.ion()
+    for i in range(window_size, len(data) - view_size):
+        data_slice = data[i:i + view_size]
+        plot_kchart(secId, data_slice)
+        plt.pause(0.2)
+    plt.ioff()
+    plt.show()
