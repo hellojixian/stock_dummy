@@ -34,6 +34,7 @@ def fetch_daily_data(code, start_date, end_date):
     df = pd.DataFrame(rs.fetchall())
     df.columns = ['date', 'open', 'high', 'low', 'close', 'vol', 'turnover', 'change']
     db.close()
+    df = df.set_index(['date'])
     return df
 
 
@@ -60,11 +61,11 @@ def extract_daily_features(data):
     data = extract_kd(data)
 
     # statistics
-    data = extract_beta(data)
-    data = extract_linear_reg(data)
+    # data = extract_beta(data)
+    # data = extract_linear_reg(data)
 
     # pattern
-    data = extract_pattern(data)
+    # data = extract_pattern(data)
     return data
 
 

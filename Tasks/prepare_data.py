@@ -5,16 +5,21 @@ import os, sys
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(PROJECT_ROOT)
 
-from Visualizers.CandleChart import plot_kchart
 from DataProviders.DailyData import *
-from sklearn.model_selection import train_test_split
+from DataProviders.MinutesData import *
+from Engine.MainEngine import *
 
-secId = 'sh600003'
+code = 'sh600003'
 start_date = '2005-01-01'
 end_date = '2008-12-30'
 
-data = fetch_daily_data(secId, start_date, end_date)
+account.cash = 10000
+
+data = fetch_daily_data(code, start_date, end_date)
 data = extract_daily_features(data)
-data = transform_daily_features(data)
-results = generate_resultset(data)
-data, results = trim_dataset(data, results, 60)
+minute_data = fetch_minutes_data(code, start_date, end_date)
+
+def handle_data(account, data):
+    pass
+
+back_test(code, data, minute_data, handle_data)

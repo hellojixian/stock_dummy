@@ -4,12 +4,12 @@ import matplotlib as mpl
 import numpy as np
 
 fig = None
-ax1, ax2 = None, None
+ax1, ax2, ax3 = None, None, None
 vol_scale_rate = 0.0001
 
 
 def plot_kchart(secId, quotes):
-    global fig, ax1, ax2
+    global fig, ax1, ax2, ax3
     vol30 = quotes['vol_ma30'].values * vol_scale_rate
     vol60 = quotes['vol_ma60'].values * vol_scale_rate
 
@@ -18,31 +18,35 @@ def plot_kchart(secId, quotes):
         fig.set_tight_layout(True)
         gs = mpl.gridspec.GridSpec(10, 1)
 
-        ax1 = fig.add_subplot(gs[:7, 0])
-        ax2 = fig.add_subplot(gs[7:, 0])
+        ax1 = fig.add_subplot(gs[:5, 0])
+        ax2 = fig.add_subplot(gs[5:7, 0])
+        ax3 = fig.add_subplot(gs[7:10, 0])
 
     ax1.clear()
     ax2.clear()
-    ax1.set_title('{} to {}'.format(quotes.loc[:, 'date'].iloc[0],
-                                    quotes.loc[:, 'date'].iloc[-1]))
+    ax3.clear()
+    ax1.set_title('{} to {}'.format(quotes.ix[0].name,
+                                    quotes.ix[-1].name))
     ax1.set_axisbelow(True)
     ax2.set_axisbelow(True)
     ax1.grid(True)
     ax1.grid(which='minor', alpha=0.2)
     ax1.grid(which='major', alpha=0.5)
     ax2.grid(True)
+    ax3.grid(True)
     ax1.set_xlim(-1, len(quotes))
     ax2.set_xlim(-1, len(quotes))
 
     ax1.set_title(str(secId).upper(), fontsize=15, loc='left', color='r')
     ax2.set_title('Volume', fontsize=15, loc='left', color='r')
+    ax3.set_title('Returns', fontsize=15, loc='left', color='r')
 
     ax1.set_yticks(np.arange(np.min(quotes['low']) - 1, np.max(quotes['high']) + 1, 1))
     ax1.set_yticks(np.arange(np.min(quotes['low']) - 1, np.max(quotes['high']) + 1, 0.2), minor=True)
     ax1.set_xticks(range(0, len(quotes), int(len(quotes) * 1 / 8)))
     ax2.set_xticks(range(0, len(quotes), int(len(quotes) * 1 / 8)))
-    ax1.set_xticklabels([quotes.loc[:, 'date'].iloc[index] for index in ax1.get_xticks()])
-    ax2.set_xticklabels([quotes.loc[:, 'date'].iloc[index] for index in ax2.get_xticks()])
+    ax1.set_xticklabels([quotes.ix[index].name for index in ax1.get_xticks()])
+    ax2.set_xticklabels([quotes.ix[index].name for index in ax2.get_xticks()])
     ax2.set_ylim(0, np.max(quotes['vol']) * vol_scale_rate * 1.2)
 
     ax1.plot(quotes['ma5'].values, color='b', linewidth=1)
@@ -98,16 +102,29 @@ def plot_kchart(secId, quotes):
             ax1.plot([i, i], [low_price, high_price], color=color)
             ax2.add_patch(patches.Rectangle((i - 0.4, 0), 0.8, vol, fill=True, color=color, alpha=1))
 
-    return [ax1, ax2]
+    return [ax1, ax2, ax3]
 
 
 def animate_data(secId, data):
     window_size = 0
     view_size = 80
+    baseline = list(np.ones(view_size) * 100)
     plt.ion()
     for i in range(window_size, len(data) - view_size):
         data_slice = data[i:i + view_size]
-        plot_kchart(secId, data_slice)
+        last_percent = float(baseline[-1])
+        last_pchange = float(data_slice.iloc[-1]['change']) + 1
+        baseline_return = round(last_percent * last_pchange, 2)
+        baseline.append(baseline_return)
+
+        print(i, baseline[-1])
+        ax1, ax2, ax3 = plot_kchart(secId, data_slice)
+        ax3.plot(range(i, i + view_size + 1), baseline[i:], color='black')
+        ax3.set_xlim(i-1, i + view_size + 1)
+        ax3.annotate('Baseline: {}%'.format(baseline_return), xy=(0.02, 0.95),
+                     xycoords="axes fraction",
+                     va='top', ha='left', weight='extra bold',
+                     color='black', fontsize=10)
         plt.pause(0.2)
     plt.ioff()
     plt.show()
