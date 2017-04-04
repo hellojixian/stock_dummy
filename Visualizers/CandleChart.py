@@ -49,20 +49,24 @@ def plot_kchart(secId, quotes):
     ax2.set_xticklabels([quotes.ix[index].name for index in ax2.get_xticks()])
     ax2.set_ylim(0, np.max(quotes['vol']) * vol_scale_rate * 1.2)
 
+    ax1.plot(quotes['close'].values, color='black', linewidth=1,alpha=0.3)
     ax1.plot(quotes['ma5'].values, color='b', linewidth=1)
     ax1.plot(quotes['ma10'].values, color='firebrick', linewidth=1)
     ax1.plot(quotes['ma30'].values, color='forestgreen', linewidth=1)
     ax1.plot(quotes['ma60'].values, color='darkmagenta', linewidth=1)
-    ax1.annotate('MA5-', xy=(0.02, 0.95), xycoords="axes fraction",
+    ax1.annotate('Close-', xy=(0.02, 0.95), xycoords="axes fraction",
+                 va='top', ha='left', weight='extra bold', color='black',
+                 fontsize=10)
+    ax1.annotate('MA5-', xy=(0.075, 0.95), xycoords="axes fraction",
                  va='top', ha='left', weight='extra bold', color='b',
                  fontsize=10)
-    ax1.annotate('MA10-', xy=(0.07, 0.95), xycoords="axes fraction",
+    ax1.annotate('MA10-', xy=(0.12, 0.95), xycoords="axes fraction",
                  va='top', ha='left', weight='extra bold',
                  color='firebrick', fontsize=10)
-    ax1.annotate('MA30-', xy=(0.12, 0.95), xycoords="axes fraction",
+    ax1.annotate('MA30-', xy=(0.17, 0.95), xycoords="axes fraction",
                  va='top', ha='left', weight='extra bold',
                  color='forestgreen', fontsize=10)
-    ax1.annotate('MA60-', xy=(0.17, 0.95), xycoords="axes fraction",
+    ax1.annotate('MA60-', xy=(0.22, 0.95), xycoords="axes fraction",
                  va='top', ha='left', weight='extra bold',
                  color='darkmagenta', fontsize=10)
 

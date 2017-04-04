@@ -9,8 +9,8 @@ def fetch_minutes_data(code, start_date, end_date):
     db = session()
     sql = """
         SELECT
-            date(`time`),
-			time(`time`),
+            date(`time`) as 'date',
+			time(`time`) as 'time',
             `open`,
             `high`,
             `low`,

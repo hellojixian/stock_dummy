@@ -38,27 +38,58 @@ def fetch_daily_data(code, start_date, end_date):
     return df
 
 
+def fetch_daily_history_data(code, start_date, range):
+    session = sessionmaker()
+    session.configure(bind=config.DB_CONN)
+    db = session()
+    sql = """
+        SELECT
+            `date`,
+            `open`,
+            `high`,
+            `low`,
+            `close`,
+            `volume`,
+            `turnover`,
+            `change`
+        FROM
+            raw_stock_trading_daily
+        WHERE
+            `code` = '{0}' AND `date` < '{1}'
+        ORDER BY
+            `date` DESC
+        LIMIT 0,{2};
+        """.format(code, start_date, range)
+    rs = db.execute(sql)
+    df = pd.DataFrame(rs.fetchall())
+    df.columns = ['date', 'open', 'high', 'low', 'close', 'vol', 'turnover', 'change']
+    db.close()
+    df = df.sort_values(by=['date'], ascending=True)
+    df = df.set_index(['date'])
+    return df
+
+
 def extract_daily_features(data):
     # time steps
-    data = extract_timestamp_changes(data)
+    # data = extract_timestamp_changes(data)
 
     # overlap studies
     data = extract_ma(data)
-    data = extract_sar(data)
+    # data = extract_sar(data)
 
     # momentum
-    data = extract_aroon(data)
-    data = extract_bop(data)
-    data = extract_cmo(data)
-    data = extract_dx(data)
-    data = extract_mom(data)
-    data = extract_roc(data)
-    data = extract_ppo(data)
-    data = extract_uos(data)
-    data = extract_willr(data)
-    data = extract_cci(data)
-    data = extract_rsi(data)
-    data = extract_kd(data)
+    # data = extract_aroon(data)
+    # data = extract_bop(data)
+    # data = extract_cmo(data)
+    # data = extract_dx(data)
+    # data = extract_mom(data)
+    # data = extract_roc(data)
+    # data = extract_ppo(data)
+    # data = extract_uos(data)
+    # data = extract_willr(data)
+    # data = extract_cci(data)
+    # data = extract_rsi(data)
+    # data = extract_kd(data)
 
     # statistics
     # data = extract_beta(data)
@@ -130,7 +161,7 @@ def generate_resultset(data):
         else:
             result.append([1, 0])
     result = pd.DataFrame(result)
-    result.columns = ['up',  'down']
+    result.columns = ['up', 'down']
     return result
 
 
