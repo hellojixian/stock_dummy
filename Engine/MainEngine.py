@@ -47,6 +47,7 @@ class account:
         if len(account.transcations) > 0:
             last_trans_date = account.transcations.ix[-1].name
             if last_trans_date == account.current_date:
+                # if account.transcations.iloc[-1]['action'] == 'buy':
                 return
 
         # print(account.current_date, account.current_time)
@@ -63,6 +64,7 @@ class account:
                 }, name=account.current_date))
         elif vol < 0 and account.security_amount <= np.abs(vol):  # sell
             account.cash += np.abs(vol) * account.security_price
+            print('cash: {}'.format(round(account.cash)))
             account.security_amount -= np.abs(vol)
             session_return = 0
             if account.transcations.iloc[-1]['action'] == 'buy':
@@ -96,6 +98,12 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
     plt.ion()
     account.init(daily_data['open'][window_size])
     account.history_data = daily_data
+
+    # 清空输出目录
+    for cur, _dirs, files in os.walk(config.OUTPUT_DIR):
+        for f in files:
+            os.remove(os.path.join(cur, f))
+
     for i in range(0, len(daily_data) - view_size - window_size):
         data_slice = daily_data[i:i + view_size + 1]
         pos = window_size
@@ -175,13 +183,15 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                      color='red', fontsize=10)
 
         # 标记买卖点
+        # print(account.transcations.tail(1))
         for b_i in range(len(account.transcations)):
             d = account.transcations.ix[b_i].name
-            price = account.transcations['price'][b_i]
-            action = account.transcations['action'][b_i]
+            price = account.transcations['price'].iloc[b_i]
+            action = account.transcations['action'].iloc[b_i]
             pos = daily_data.index.get_loc(d)
             pos = pos - i
             if pos >= 0:
+
                 if action == 'buy':
                     ax1.annotate('b',
                                  xy=(pos, price), xycoords='data',
@@ -195,7 +205,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                                  arrowprops=dict(arrowstyle="->", color='black'),
                                  color="blue", weight='bold')
                     return_rate = round(account.transcations.iloc[b_i]['return'], 2)
-                    if return_rate>0:
+                    if return_rate >= 0:
                         ax1.annotate('+ {}%'.format(return_rate),
                                      xy=(pos, price), xycoords='data', rotation=0,
                                      xytext=(-1, +40), textcoords='offset points', fontsize=8,

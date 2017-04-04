@@ -14,7 +14,7 @@ code = 'sh600003'
 start_date = '2005-01-01'
 end_date = '2008-12-30'
 prepend_window = 60
-account.cash = 10000
+account.cash = 100000
 
 data = fetch_daily_data(code, start_date, end_date)
 prepend_data = fetch_daily_history_data(code, start_date, range=prepend_window)
