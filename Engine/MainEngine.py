@@ -1,13 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 from Visualizers.CandleChart import plot_kchart
+from Common import config
 
 
 class account:
     cash = 0
     init_fund = 0
     history_data = None
+    previous_date = None
     current_date = None
     current_time = None
     current_return = 100
@@ -40,6 +43,12 @@ class account:
     # 如果这一天有买入或者卖出需要标记出来 用于画图输出用
     @staticmethod
     def order(vol):
+        # 一天只允许交易一次
+        if len(account.transcations) > 0:
+            last_trans_date = account.transcations.ix[-1].name
+            if last_trans_date == account.current_date:
+                return
+
         # print(account.current_date, account.current_time)
         if vol > 0 and account.cash >= vol * account.security_price:  # buy
             account.cash -= vol * account.security_price
@@ -49,17 +58,23 @@ class account:
                     'time': account.current_time,
                     'action': 'buy',
                     'price': account.security_price,
-                    'amount': vol
+                    'amount': vol,
+                    'return': 0,
                 }, name=account.current_date))
         elif vol < 0 and account.security_amount <= np.abs(vol):  # sell
             account.cash += np.abs(vol) * account.security_price
             account.security_amount -= np.abs(vol)
+            session_return = 0
+            if account.transcations.iloc[-1]['action'] == 'buy':
+                bought_price = account.transcations.iloc[-1]['price']
+                session_return = (account.security_price - bought_price) / bought_price * 100
             account.transcations = account.transcations.append(
                 pd.Series({
                     'time': account.current_time,
                     'action': 'sell',
                     'price': account.security_price,
-                    'amount': vol
+                    'amount': vol,
+                    'return': session_return
                 }, name=account.current_date))
         account.update_current_return()
         pass
@@ -85,6 +100,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
         data_slice = daily_data[i:i + view_size + 1]
         pos = window_size
         account.current_date = data_slice.ix[pos].name
+        account.previous_date = data_slice.ix[pos - 1].name
 
         # 调用策略
         m_data = minute_data.loc[account.current_date][:240]
@@ -125,15 +141,25 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
         # 计算策略收益率
         account.update_current_return()
         strategy.append(account.current_return)
+        min_return = np.min(list(strategy[-60:]) + list(baseline[-60:]))
+        max_return = np.max(list(strategy[-60:]) + list(baseline[-60:]))
+        if min_return > 0:
+            min_return *= 0.9
+        else:
+            min_return *= 1.1
+        if max_return > 0:
+            max_return *= 1.1
+        else:
+            max_return *= 0.9
+
+        ax3.set_ylim(min_return, max_return)
+
         ax3.plot(range(i, len(strategy)), strategy[i:], color='blue', marker='.')
         ax3.annotate('Strategy: {}%'.format(account.current_return), xy=(0.02, 0.85),
                      xycoords="axes fraction",
                      va='top', ha='left', weight='extra bold',
                      color='blue', fontsize=10)
 
-        min_return = np.min(strategy + baseline) * 0.95
-        max_return = np.max(strategy + baseline) * 1.05
-        ax3.set_ylim(min_return, max_return)
         return_pos = i + view_size - (view_size - window_size) + 1
         ax3.plot([return_pos, return_pos],
                  [min_return, max_return],
@@ -155,24 +181,36 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             action = account.transcations['action'][b_i]
             pos = daily_data.index.get_loc(d)
             pos = pos - i
-            print(pos)
-            if pos > 0:
-                if action=='buy':
+            if pos >= 0:
+                if action == 'buy':
                     ax1.annotate('b',
                                  xy=(pos, price), xycoords='data',
                                  xytext=(-1, -20), textcoords='offset points',
-                                 arrowprops=dict(arrowstyle="->", color='red'),
-                                 color="red")
+                                 arrowprops=dict(arrowstyle="->", color='black'),
+                                 color="red", weight='bold')
                 else:
                     ax1.annotate('s',
                                  xy=(pos, price), xycoords='data',
                                  xytext=(-1, +20), textcoords='offset points',
-                                 arrowprops=dict(arrowstyle="->", color='blue'),
-                                 color="blue")
-            # print(account.transcations.ix[i].name)
+                                 arrowprops=dict(arrowstyle="->", color='black'),
+                                 color="blue", weight='bold')
+                    return_rate = round(account.transcations.iloc[b_i]['return'], 2)
+                    if return_rate>0:
+                        ax1.annotate('+ {}%'.format(return_rate),
+                                     xy=(pos, price), xycoords='data', rotation=0,
+                                     xytext=(-1, +40), textcoords='offset points', fontsize=8,
+                                     arrowprops=dict(arrowstyle="->", color='black'),
+                                     color="red", weight='bold')
+                    else:
+                        ax1.annotate('- {}%'.format(np.abs(return_rate)),
+                                     xy=(pos, price), xycoords='data', rotation=0,
+                                     xytext=(-1, +40), textcoords='offset points', fontsize=8,
+                                     arrowprops=dict(arrowstyle="->", color='black'),
+                                     color="green", weight='bold')
             pass
 
-        print('-----')
+        fig_name = "{}-{}-{}.png".format(secId, str(i), str(account.current_date))
+        plt.savefig(os.path.join(config.OUTPUT_DIR, fig_name), format='png')
 
         plt.pause(0.2)
     plt.ioff()
