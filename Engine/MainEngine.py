@@ -117,7 +117,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             account.current_time = "{:02d}:{:02d}".format(int(account.current_time.seconds / 3600),
                                                           (account.current_time.seconds % 3600) // 60)
             account.security_price = m_data.iloc[m]['close']
-            handle_data(account, m_data)
+            handle_data(account, m_data[:(m+1)])
 
         # 输出K线图 并且计算收益率
         ax1, ax2, ax3 = plot_kchart(secId, data_slice)
@@ -195,9 +195,9 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                 if action == 'buy':
                     ax1.annotate('b',
                                  xy=(pos, price), xycoords='data',
-                                 xytext=(-1, -20), textcoords='offset points',
+                                 xytext=(-1, -30), textcoords='offset points',
                                  arrowprops=dict(arrowstyle="->", color='black'),
-                                 color="red", weight='bold')
+                                 color="darkred", weight='bold')
                 else:
                     ax1.annotate('s',
                                  xy=(pos, price), xycoords='data',

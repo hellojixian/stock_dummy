@@ -82,9 +82,9 @@ def plot_kchart(secId, quotes):
     if 'sar' in quotes.columns:
         for i in range(len(quotes)):
             if quotes['sar'].values[i] > 0:
-                ax1.scatter(i, quotes['sar'].values[i], color='red', marker='o', alpha=0.6)
+                ax1.scatter(i, quotes['sar'].values[i], color='red', marker='o', alpha=0.4)
             else:
-                ax1.scatter(i, np.abs(quotes['sar'].values[i]), color='green', marker='o', alpha=0.6)
+                ax1.scatter(i, np.abs(quotes['sar'].values[i]), color='green', marker='o', alpha=0.4)
 
     for i in range(len(quotes)):
         close_price = quotes.loc[:, 'close'].iloc[i]

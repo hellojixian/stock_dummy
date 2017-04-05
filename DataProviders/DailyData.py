@@ -75,7 +75,7 @@ def extract_daily_features(data):
 
     # overlap studies
     data = extract_ma(data)
-    # data = extract_sar(data)
+    data = extract_sar(data)
 
     # momentum
     # data = extract_aroon(data)

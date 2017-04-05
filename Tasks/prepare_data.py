@@ -10,9 +10,12 @@ from DataProviders.MinutesData import *
 from Engine.MainEngine import *
 from Strategies.LuckyOne import handle_data
 
-code = 'sh600003'
-start_date = '2005-01-01'
-end_date = '2008-12-30'
+code = 'sh600552'
+start_date = '2015-01-01'
+
+# code = 'sh600819'
+# start_date = '2015-01-15'
+end_date = '2016-12-30'
 prepend_window = 60
 account.cash = 100000
 
