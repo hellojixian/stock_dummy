@@ -11,7 +11,10 @@ from Engine.MainEngine import *
 from Strategies.LuckyOne import handle_data
 
 code = 'sh600552'
-start_date = '2015-01-01'
+start_date = '2015-04-10'
+start_date = '2016-08-22'
+# start_date = '2015-07-01'
+
 
 # code = 'sh600819'
 # start_date = '2015-01-15'

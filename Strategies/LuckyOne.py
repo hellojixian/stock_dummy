@@ -1,7 +1,8 @@
 import numpy as np
 
 strategy_info = {
-    'last_ignore_buy_date': None
+    'last_ignore_buy_date': None,
+    'ignore_first_n_mins': 0
 }
 
 
@@ -12,9 +13,10 @@ def handle_data(account, data):
         return
 
     if strategy_info['last_ignore_buy_date'] != account.current_date:
-        if should_ignore_buy_signal(account, data):
-            strategy_info['last_ignore_buy_date'] = account.current_date
-        elif should_buy(account, data):
+        if len(data) > strategy_info['ignore_first_n_mins'] or strategy_info['ignore_first_n_mins'] == 0:
+            if should_ignore_buy_signal(account, data):
+                strategy_info['last_ignore_buy_date'] = account.current_date
+            elif account.security_amount == 0 and should_buy(account, data):
                 percent = 100
                 vol = int(account.cash * percent / 100 / account.security_price)
                 account.order(vol)
@@ -46,8 +48,12 @@ def should_buy(account, data):
     prev_pos = account.history_data.index.get_loc(account.previous_date)
     prev = account.history_data.loc[account.previous_date]
 
-    # if prev['sar'] < 0: return False
+    # 如果需要 则忽略前N分钟
+    if len(data) < strategy_info['ignore_first_n_mins']:
+        return False
 
+    # 重置计数器
+    strategy_info['ignore_first_n_mins'] = 0
 
     # 绿柱后平开 开盘即可买入
     if account.current_time == "10:00" \
@@ -80,15 +86,7 @@ def should_buy(account, data):
     # todo: 如果当前价格高过昨天最高价格就买入
 
     # 光头光脚阳柱 大约3个点 啥时候都可以买
-    # 昨天不能是暴跌 昨天的实体+最高价跌幅不能大于7%
     if is_pure_red_bar(account.security_price, open_price, highest_price, lowest_price, ratio=0.035):
-        # print((prev['close'] - prev['high']) / prev['high'])
-        # if prev['close'] - prev['high'] == 0:
-        #     print(account.current_date, account.current_time, 'buy pure red bar after 0% changes')
-        #     return True
-        #
-        # if (prev['close'] - prev['high']) / prev['high'] > -0.07:
-        #     print(account.current_date, account.current_time, 'buy pure red bar')
         return True
 
     if account.current_time == "14:48" \
@@ -100,12 +98,12 @@ def should_buy(account, data):
         return True
 
     # 今日涨幅 2% 但是上引线不能超过实体的50%
-    if account.current_time in ["13:30", "14:00", "14:30", "14:40", "14:48"]:
-        if is_red_bar(account.security_price, open_price, ratio=0.015):
+    if len(data) > 90:
+        if is_red_bar(account.security_price, open_price, ratio=0.020):
             upline = (highest_price - current_price)
             body = (current_price - open_price)
             if upline / body < 0.5:
-                print(account.current_date, account.current_time, 'buy in the afternoon, today > 2%')
+                print(account.current_date, account.current_time, 'buy after 1.5 hour open, today > 2%')
                 return True
 
     # 如果是危险区
@@ -125,6 +123,10 @@ def should_buy(account, data):
                     and is_red_bar(account.security_price, open_price, ratio=0.005):
                 print(account.current_date, account.current_time, 'buy in the afternoon')
                 return True
+
+        # todo: 安全区 尾盘收T 那就可以买
+        if len(data)>220 :
+            pass
 
     return False  # 两次时间点判断杀跌
 
@@ -160,10 +162,16 @@ def should_sell(account, data):
     # todo: 暴跌>8%之后 遇到高开 当天尾盘卖出
 
     # 跌破买入价就卖出 & 强制停损
-    if account.current_time in ["10:00", "10:30", "11:00", "11:25", "13:01", "13:30", "14:00", "14:30"] \
+    if len(data) > 90 \
             and (account.security_price - bought_price) / bought_price < -0.04 \
             and is_going_down(account.security_price, data, 15):
-        print('stop loss today')
+        print(account.current_date, account.current_time, 'stop loss today dropped -4% in the day time')
+        return True
+    # 如果早盘跌破2.5% 就止损
+    if 90 > len(data) > 30 \
+            and (account.security_price - bought_price) / bought_price < -0.025 \
+            and is_going_down(account.security_price, data, 15):
+        print(account.current_date, account.current_time, 'stop loss today dropped -2.5% in the morning')
         return True
 
     # 如果昨天的SAR是负数数，使用危险区卖出原则
@@ -221,6 +229,8 @@ def should_ignore_buy_signal(account, data):
     prev = account.history_data.loc[account.previous_date]
     prev_2 = account.history_data.iloc[prev_pos - 1]
     prev_3 = account.history_data.iloc[prev_pos - 2]
+    prev_4 = account.history_data.iloc[prev_pos - 3]
+    prev_5 = account.history_data.iloc[prev_pos - 4]
     open_price = data.iloc[0]['open']
 
     # 任何趋势 如果前面3连红 也不要追了
@@ -242,6 +252,34 @@ def should_ignore_buy_signal(account, data):
 
     # 绿红红绿，直接忽略
 
+    # 四红一绿，等晚盘再操作
+    if prev['change'] < 0 \
+            and prev_2['change'] > 0 \
+            and prev_3['change'] > 0 \
+            and prev_4['change'] > 0 \
+            and prev_5['change'] > 0:
+        print(account.current_date, '4red 1green - wait until before closing ')
+        strategy_info['ignore_first_n_mins'] = 220
+    elif prev['change'] < 0 \
+            and prev_2['change'] > 0 \
+            and prev_3['change'] > 0:
+        print(account.current_date, '2red 1green - wait until before closing ')
+        strategy_info['ignore_first_n_mins'] = 180
+    elif prev['change'] > 0 \
+            and prev_2['change'] > 0:
+        print(account.current_date, '2red - wait until before closing ')
+        strategy_info['ignore_first_n_mins'] = 180
+
+    # if prev['change'] < 0.09:
+    #     print(account.current_date, 'yesterday dropped > 9% - wait until before closing ')
+    #     strategy_info['ignore_first_n_mins'] = 200
+
+
+    if prev['change'] > 0 \
+            and prev_2['change'] > 0 \
+            and prev_3['change'] > 0:
+        return True
+
     # 昨天下跌>7% 还低开8% 直接忽略
     if (prev['close'] - prev['open']) / prev['open'] < -0.07 \
             and (open_price - prev['close']) / prev['close'] < -0.07:
@@ -255,16 +293,17 @@ def should_ignore_buy_signal(account, data):
             and downline == 0:
         if body == 0:
             print(account.current_date, 'ignore - yesterday drop >8%')
-            return True
+            strategy_info['ignore_first_n_mins'] = 200
+
         elif (upline - np.abs(body)) / np.abs(body) > 0.85:
             print(account.current_date, 'ignore - yesterday drop >8%')
-            return True
+            strategy_info['ignore_first_n_mins'] = 200
 
     # 如果昨天从最高位到收盘 下跌>8% 今天凶多吉少
     if (prev['close'] - prev['high']) / prev['high'] < -0.08 \
             and prev['close'] < prev['open']:
         print(account.current_date, 'ignore - yesterday drop >8% from highest to close')
-        return True
+        strategy_info['ignore_first_n_mins'] = 200
 
     return False
 

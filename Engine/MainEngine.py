@@ -92,6 +92,9 @@ class account:
 
 def back_test(secId, daily_data, window_size, minute_data, handle_data):
     global account
+    back_test_finished = False
+    tail_mode = False
+    tail_len = 0
     view_size = 70
     baseline = list(np.ones(window_size + 1) * 0)
     strategy = list(np.ones(window_size + 1) * 0)
@@ -104,12 +107,24 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
         for f in files:
             os.remove(os.path.join(cur, f))
 
-    for i in range(0, len(daily_data) - view_size - window_size):
-        data_slice = daily_data[i:i + view_size + 1]
-        pos = window_size
+    for i in range(0, len(daily_data)):
+        if i + view_size <= len(daily_data):
+            data_slice = daily_data[i:i + view_size + 1]
+            # print(tail_mode, len(data_slice), len(daily_data))
+            pos = window_size
+        else:
+            tail_mode = True
+            start_pos = len(daily_data) - view_size + i - 2
+            data_slice = daily_data[start_pos:]
+            tail_len = view_size - len(data_slice) + 1
+            pos = start_pos + view_size - i - (view_size - window_size) + 1
+            # print(tail_mode, i, pos, len(data_slice), tail_len)
+            if tail_len == (view_size-window_size-1):
+                back_test_finished = True
+
         account.current_date = data_slice.ix[pos].name
         account.previous_date = data_slice.ix[pos - 1].name
-
+        print('---', account.current_date)
         # 调用策略
         m_data = minute_data.loc[account.current_date][:240]
         for m in range(len(m_data)):
@@ -117,10 +132,14 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             account.current_time = "{:02d}:{:02d}".format(int(account.current_time.seconds / 3600),
                                                           (account.current_time.seconds % 3600) // 60)
             account.security_price = m_data.iloc[m]['close']
-            handle_data(account, m_data[:(m+1)])
+            handle_data(account, m_data[:(m + 1)])
 
         # 输出K线图 并且计算收益率
         ax1, ax2, ax3 = plot_kchart(secId, data_slice)
+
+        # 设置标题
+        ax1.set_title('{} to {}'.format(daily_data.ix[window_size].name,
+                                        daily_data.ix[-1].name))
 
         # 绘制分割线
         price_columns = ['ma5', 'ma10', 'ma30', 'ma60', 'high', 'low', 'open', 'close']
@@ -130,9 +149,18 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             ax1.plot([window_size - i, window_size - i],
                      [min_price, max_price],
                      color='black', alpha=0.5)
-        ax1.plot([pos + 1, pos + 1],
-                 [min_price, max_price],
-                 color='red', alpha=0.5)
+
+        if tail_mode:
+            ax1.set_xlim(-1, len(data_slice) + tail_len)
+            ax2.set_xlim(-1, len(data_slice) + tail_len)
+            ax1.plot([pos, pos],
+                     [min_price, max_price],
+                     color='red', alpha=0.5)
+        else:
+            ax1.plot([pos + 1, pos + 1],
+                     [min_price, max_price],
+                     color='red', alpha=0.5)
+
         ax1.set_ylim(min_price, max_price)
 
         # 计算基线收益率
@@ -222,6 +250,11 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
         fig_name = "{}-{}-{}.png".format(secId, str(i), str(account.current_date))
         plt.savefig(os.path.join(config.OUTPUT_DIR, fig_name), format='png')
 
+        if back_test_finished:
+            ax3.set_title('-- BACK TEST FINISHED --', color="red", weight='bold')
+            plt.ioff()
+            plt.show()
+            break
         plt.pause(0.2)
     plt.ioff()
     plt.show()
