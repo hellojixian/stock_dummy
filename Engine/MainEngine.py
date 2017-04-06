@@ -254,7 +254,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             plt.ioff()
             plt.show()
             break
-        plt.pause(0.2)
+        plt.pause(0.01)
     plt.ioff()
     plt.show()
     pass
