@@ -125,7 +125,7 @@ def should_buy(account, data):
                 return True
 
         # todo: 安全区 尾盘收T 那就可以买
-        if len(data)>220 :
+        if len(data) > 220:
             pass
 
     return False  # 两次时间点判断杀跌
@@ -156,8 +156,16 @@ def should_sell(account, data):
         today_change = (account.security_price - prev_close) / prev_close
         prev_change = (prev_close - prev_open) / prev_open
         if today_change < 0 and (prev_change - (prev_change + today_change)) / prev_change > 0.65:
-            print('stop loss today lower than yesterday change 65%')
+            print(account.current_date, account.current_time,'stop loss today lower than yesterday change 65%')
             return True
+
+    # 昨天上影线长度 且 涨幅2个点 平开超过0.0055 开盘卖出
+    # 0.024 / 0.029
+    if prev['change'] > 0.02 and len(data) == 1 \
+            and ((prev['high'] - prev['close']) / prev['close']) / (
+                        (prev['close'] - prev['open']) / prev['close']) > 0.75:
+        print(account.current_date, account.current_time,"should not hold, yesterday upline is too long")
+        return True
 
     # todo: 暴跌>8%之后 遇到高开 当天尾盘卖出
 

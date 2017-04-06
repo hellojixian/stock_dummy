@@ -124,7 +124,6 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
 
         account.current_date = data_slice.ix[pos].name
         account.previous_date = data_slice.ix[pos - 1].name
-        print('---', account.current_date)
         # 调用策略
         m_data = minute_data.loc[account.current_date][:240]
         for m in range(len(m_data)):
