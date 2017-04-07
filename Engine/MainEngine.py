@@ -118,7 +118,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
             start_pos = len(daily_data) - view_size + tail_len + 1
             data_slice = daily_data[start_pos:]
             pos = window_size
-            print(tail_mode, i, pos, start_pos, len(data_slice), tail_len)
+            # print(tail_mode, i, pos, start_pos, len(data_slice), tail_len)
 
             if tail_len == (view_size - window_size - 2):
                 back_test_finished = True

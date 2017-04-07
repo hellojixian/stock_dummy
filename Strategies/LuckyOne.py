@@ -171,13 +171,20 @@ def should_sell(account, data):
 
         # 如果昨天是 - 字 加1.5点以上的上影线，并且没有下引线支持，开盘就卖出
         if np.abs((prev['close'] - prev['open']) / prev['open']) < 0.01 \
-                and np.abs((prev['close'] - prev['low']) / prev['close']) < 0.01 \
+                and np.abs((prev['open'] - prev['low']) / prev['open']) < 0.01 \
                 and np.abs((prev['high'] - prev['close']) / prev['close']) > 0.02:
             print(account.current_date, account.current_time,
                   'stop loss yesterday is -- and no downline, only have upline')
             return True
 
-        # todo: 如果昨天是第一次翻红，没有下引线 但是有很长的上引线，开盘就卖出
+        # 如果昨天是第一次翻红，没有下引线 但是有很长的上引线，开盘就卖出
+        if (prev_2['close'] - prev_2['open']) / prev_2['open'] < 0 \
+                and prev['change'] > 0.005 \
+                and np.abs((prev['open'] - prev['low']) / prev['open']) < 0.01 \
+                and np.abs((prev['high'] - prev['close']) / prev['close']) > 0.02:
+            print(account.current_date, account.current_time,
+                  'stop loss yesterday bought a long upline by unlucky')
+            return True
 
     # 如果高开，但是中午跌破昨天涨幅的40% 就赶快卖出
     if account.current_time in ["11:00", "11:25", "13:01", "13:30"] \
