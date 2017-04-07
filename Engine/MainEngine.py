@@ -109,17 +109,18 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
 
     for i in range(0, len(daily_data)):
         if i + view_size <= len(daily_data):
-            data_slice = daily_data[i:i + view_size + 1]
+            data_slice = daily_data[i:i + view_size +1]
             # print(tail_mode, len(data_slice), len(daily_data))
             pos = window_size
         else:
             tail_mode = True
-            start_pos = len(daily_data) - view_size + i - 2
+            tail_len = np.abs(len(daily_data) - view_size + 1 - i)
+            start_pos = len(daily_data) - view_size + tail_len + 1
             data_slice = daily_data[start_pos:]
-            tail_len = view_size - len(data_slice) + 1
-            pos = start_pos + view_size - i - (view_size - window_size) + 1
-            # print(tail_mode, i, pos, len(data_slice), tail_len)
-            if tail_len == (view_size-window_size-1):
+            pos = window_size
+            print(tail_mode, i, pos, start_pos, len(data_slice), tail_len)
+
+            if tail_len == (view_size - window_size - 2):
                 back_test_finished = True
 
         account.current_date = data_slice.ix[pos].name
@@ -152,13 +153,11 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
         if tail_mode:
             ax1.set_xlim(-1, len(data_slice) + tail_len)
             ax2.set_xlim(-1, len(data_slice) + tail_len)
-            ax1.plot([pos, pos],
-                     [min_price, max_price],
-                     color='red', alpha=0.5)
-        else:
-            ax1.plot([pos + 1, pos + 1],
-                     [min_price, max_price],
-                     color='red', alpha=0.5)
+        ax1.plot([pos, pos],
+                 [min_price, max_price],
+                 color='red', alpha=0.5)
+
+
 
         ax1.set_ylim(min_price, max_price)
 

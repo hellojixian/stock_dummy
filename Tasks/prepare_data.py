@@ -14,7 +14,7 @@ code = 'sh600552'
 start_date = '2015-04-10'
 # start_date = '2016-08-22'
 start_date = '2015-07-01'
-start_date = '2016-05-23'
+start_date = '2016-08-18'
 
 
 # code = 'sh600819'

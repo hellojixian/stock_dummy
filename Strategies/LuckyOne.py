@@ -101,6 +101,15 @@ def should_buy(account, data):
                 print(account.current_date, account.current_time, 'buy after 1.5 hour open, today > 2%')
                 return True
 
+    # 尾盘200分钟以后 大于1.5 且没有上引线 并且举例最低点3个点
+    upline = (highest_price - current_price)
+    if len(data) > 200 \
+            and is_red_bar(current_price, open_price, ratio=0.015) \
+            and is_red_bar(current_price, lowest_price, ratio=0.03) \
+            and upline / current_price < 0.002:
+        print(account.current_date, account.current_time, 'buy at the end (180m), today is red bar 1.5% no upline')
+        return True
+
     # 如果是危险区
     if prev['sar'] < 0:
         pass
@@ -167,6 +176,8 @@ def should_sell(account, data):
             print(account.current_date, account.current_time,
                   'stop loss yesterday is -- and no downline, only have upline')
             return True
+
+        # todo: 如果昨天是第一次翻红，没有下引线 但是有很长的上引线，开盘就卖出
 
     # 如果高开，但是中午跌破昨天涨幅的40% 就赶快卖出
     if account.current_time in ["11:00", "11:25", "13:01", "13:30"] \
@@ -246,7 +257,8 @@ def should_sell(account, data):
                 and prev['change'] > 0.09 \
                 and (open_price - prev['close']) / prev['close'] < 0.091 \
                 and (account.security_price - highest_price) / highest_price < -0.035:
-            print(account.current_date, account.current_time, 'cannot hold it - dropped 3.5% from today highest price and yesterday changes is >9%')
+            print(account.current_date, account.current_time,
+                  'cannot hold it - dropped 3.5% from today highest price and yesterday changes is >9%')
             return True
 
         # 当日下跌过昨日收盘价 超过3个点卖出
