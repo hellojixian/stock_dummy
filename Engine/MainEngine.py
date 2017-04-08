@@ -21,6 +21,8 @@ class account:
     baseline_return = 100
     baseline_security_amount = 0
 
+    today_SPO = False
+
     transcations = pd.DataFrame(columns=['time', 'action', 'amount'])
 
     # 剩余资金 + 舱内股票当时价值 / 初始资金
@@ -46,7 +48,7 @@ class account:
         # 一天只允许交易一次
         if len(account.transcations) > 0:
             last_trans_date = account.transcations.ix[-1].name
-            if last_trans_date == account.current_date:
+            if last_trans_date == account.current_date and account.today_SPO==False:
                 # if account.transcations.iloc[-1]['action'] == 'buy':
                 return
 
@@ -109,7 +111,7 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
 
     for i in range(0, len(daily_data)):
         if i + view_size <= len(daily_data):
-            data_slice = daily_data[i:i + view_size +1]
+            data_slice = daily_data[i:i + view_size + 1]
             # print(tail_mode, len(data_slice), len(daily_data))
             pos = window_size
         else:
@@ -149,8 +151,38 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                  [min_price, max_price],
                  color='red', alpha=0.5)
 
-        # 调用策略
+        # 当天的分钟数据
         m_data = minute_data.loc[account.current_date][:240]
+
+        # 处理如果股票增发 价格跳水的计算逻辑
+        # SPO - Secondary Public Offering
+        open_price = m_data.iloc[0]['open']
+        prev_close = daily_data.loc[account.previous_date]['close']
+        current_price = account.security_price
+        if (open_price - prev_close) / prev_close < -0.12:
+            # 处理基线收益算法，按昨天收盘价卖出，今天开盘价继续买入
+            # baseline - sell all
+            account.baseline_cash += account.baseline_security_amount * prev_close
+            account.baseline_security_amount = 0
+            # baseline - buy all
+            account.baseline_security_amount = int(account.baseline_cash / open_price)
+            account.baseline_cash = account.baseline_cash % open_price
+
+            # sell all
+            if account.security_amount > 0:
+                print('-- SPO - Reset account --')
+                prev_date = account.previous_date
+                current_date = account.current_date
+                account.security_price = prev_close
+                account.current_date = prev_date
+                account.today_SPO = True
+                account.order(-account.security_amount)
+                # 还原
+                account.security_price = current_price
+                account.current_date = current_date
+                account.today_SPO = False
+
+        # 调用策略
         for m in range(len(m_data)):
             account.current_time = m_data.iloc[m]['time']
             account.current_time = "{:02d}:{:02d}".format(int(account.current_time.seconds / 3600),

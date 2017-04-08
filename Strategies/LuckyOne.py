@@ -27,6 +27,7 @@ def handle_data(account, data):
 
     if should_sell(account, data):
         account.order(-account.security_amount)
+        strategy_info['ignore_first_n_mins'] = 0
     pass
 
 
@@ -354,6 +355,20 @@ def should_sell(account, data):
               'stop loss - price lower than yesterday highest < -3.5%')
         return True
 
+    # 如果高开 低走，低于昨天开盘价1个点则卖出
+    if len(data) > 30:
+        if (open_price - prev_close) / prev_close > 0.02 \
+                and current_price < prev_close:
+            print(account.current_date, account.current_time,
+                  'stop loss - high open >2% goes down, lower then yesterday close')
+            return True
+
+        if (open_price - prev_close) / prev_close > 0.015 \
+                and (prev_close - current_price) / prev_close < 0.01:
+            print(account.current_date, account.current_time,
+                  'stop loss - high open > 1.5% goes down, lower then yesterday close < -1%')
+            return True
+
     # 昨天上影线长度 且 涨幅2个点 平开超过0.0055 开盘卖出
     if prev['change'] > 0.023 and len(data) == 1 \
             and (prev['close'] - prev['open']) / prev['close'] != 0 \
@@ -489,7 +504,7 @@ def should_ignore_buy_signal(account, data):
             and is_red_bar(prev_2['close'], prev_2['open'], 0.01) \
             and is_red_bar(prev_3['close'], prev_3['open'], 0.01) \
             and len(data) <= 200:
-        print(account.current_date, 'ignore - do not follow 3 red barr ')
+        print(account.current_date, 'ignore - do not follow 3 red bar')
         strategy_info['ignore_first_n_mins'] = 200
 
     # 如果下跌趋势 一个红柱也不追早盘 全看尾盘
@@ -519,13 +534,9 @@ def should_ignore_buy_signal(account, data):
             and (prev['close'] - prev['open']) / prev['open'] > 0.01 \
             and prev_2['change'] > 0.01 \
             and (prev_2['close'] - prev_2['open']) / prev_2['open'] > 0.01 \
-            and len(data) <= 180:
+            and len(data) <= 120:
         print(account.current_date, '2 red - wait until before closing ')
-        strategy_info['ignore_first_n_mins'] = 180
-
-    # if prev['change'] < 0.09:
-    #     print(account.current_date, 'yesterday dropped > 9% - wait until before closing ')
-    #     strategy_info['ignore_first_n_mins'] = 200
+        strategy_info['ignore_first_n_mins'] = 120
 
     if prev['change'] > 0 and prev['close'] > prev['open'] \
             and prev_2['change'] > 0 and prev_2['close'] > prev_2['open'] \
