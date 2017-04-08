@@ -63,18 +63,27 @@ def should_buy(account, data):
 
         # 跟双星策略
         if np.abs((prev['close'] - prev['open']) / prev['open']) < 0.015 \
+                and (prev['close'] - prev['low']) / prev['close'] > 0.01 \
+                and (prev['open'] - prev['low']) / prev['open'] > 0.01 \
                 and np.abs((prev_2['close'] - prev_2['open']) / prev_2['open']) < 0.015 \
+                and (prev_2['close'] - prev_2['low']) / prev_2['close'] > 0.01 \
+                and (prev_2['open'] - prev_2['low']) / prev_2['open'] > 0.01 \
                 and open_price - prev['close'] > prev['close'] - prev['open'] \
                 and account.security_price > open_price \
                 and (prev['close'] - prev['open']) / prev['open'] \
                         + (prev_2['close'] - prev_2['open']) / prev_2['open'] > -0.015:
+            # 当前价格超过
             print(account.current_date, account.current_time, 'follow 2 stars - try luck!')
             return True
 
     if len(data) > 10:
         # 之前双星 当前上涨已经超过昨日收盘价
         if np.abs((prev['close'] - prev['open']) / prev['open']) < 0.015 \
+                and (prev['close'] - prev['low']) / prev['close'] > 0.01 \
+                and (prev['open'] - prev['low']) / prev['open'] > 0.01 \
                 and np.abs((prev_2['close'] - prev_2['open']) / prev_2['open']) < 0.015 \
+                and (prev_2['close'] - prev_2['low']) / prev_2['close'] > 0.01 \
+                and (prev_2['open'] - prev_2['low']) / prev_2['open'] > 0.01 \
                 and account.security_price > prev['close'] \
                 and (prev['close'] - prev['open']) / prev['open'] \
                         + (prev_2['close'] - prev_2['open']) / prev_2['open'] > -0.015:
@@ -162,6 +171,7 @@ def should_buy(account, data):
     # 如果昨天是绿柱 今天红色实体超过昨天就可以买入 并且3小时以后
     if prev['change'] < - 0.01 \
             and current_price - open_price > prev['open'] - prev['close'] \
+            and (current_price - open_price) / open_price > 0.01 \
             and open_price > prev['close'] \
             and prev_2['change'] > -0.075 \
             and len(data) > 200:
@@ -169,10 +179,12 @@ def should_buy(account, data):
         return True
 
     # 如果已经是3小时以后，并且高过最低价2个点了 并且没有上影线 则买入
+    # 并且没有2.5个点以上的跳空低开
     if len(data) > 180 \
             and prev['close'] < prev['open'] \
             and (current_price - lowest_price) / lowest_price > 0.03 \
-            and (highest_price - current_price) / highest_price < 0.005:
+            and (highest_price - current_price) / highest_price < 0.005 \
+            and (open_price - prev['close']) / prev['close'] > - 0.02:
         print(account.current_date, account.current_time,
               'buy - at the end (180m) price is already higher than lowest 3%')
         return True
@@ -194,7 +206,8 @@ def should_buy(account, data):
     if len(data) > 180:
         if prev_2['change'] > -0.075 \
                 and (current_price - lowest_price) / lowest_price > 0.045 \
-                and (current_price - open_price) / open_price > 0.01:
+                and (current_price - open_price) / open_price > 0.01 \
+                and (open_price - prev['close']) / prev['close'] > -0.02:
             print(account.current_date, account.current_time,
                   'buy - today downline is >4.5% and current grow >1%, try luck !')
             return True
@@ -418,7 +431,7 @@ def should_sell(account, data):
         if (open_price - prev_close) / prev_close > - 0.002 \
                 and (current_price - prev_close) / prev_close < -0.02 \
                 and (current_price - bought_price) / bought_price < -0.02:
-            print(account.current_date, 'stop loss - lower than bought price > 2%')
+            print(account.current_date, account.current_time, 'stop loss - lower than bought price > 2%')
             return True
 
         # 如果第二天高开
@@ -426,22 +439,22 @@ def should_sell(account, data):
             # 高开一小时后低走1个点 立即买出
             if (current_price - open_price) / open_price < -0.01 \
                     and len(data) > 60:
-                print(account.current_date, 'stop loss - open price is jump higher 1%')
+                print(account.current_date, account.current_time, 'stop loss - open price is jump higher 1%')
                 return True
 
         # 如果昨天买到的是2个点以上的绿柱，开盘立即卖出
         if (prev['close'] - prev['open']) / prev['open'] < -0.02:
             if (current_price - open_price) / open_price > 0.005:
-                print(account.current_date, 'stop loss because yesterday')
+                print(account.current_date, account.current_time, 'stop loss because yesterday')
                 return True
 
-        # 危险区 超过买入价后 回落一个点就卖出
-        if highest_price > bought_price \
+        # 危险区 超过买入价后1个点 回落1个点就卖出
+        if (highest_price - bought_price) / bought_price > 0.01 \
                 and (highest_price - current_price) / highest_price > 0.015 \
                 and highest_price > open_price \
                 and len(data) > 5:
             print(account.current_date, account.current_time,
-                  'cannot hold it - dangrous period, should sell it')
+                  'cannot hold it - highest price higher than bought price and drop down 1.5%')
             return True
 
         # 上影线原则：当前距离最高点 低于1个点则卖出 当前价格已经高于买入价格
