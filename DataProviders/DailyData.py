@@ -27,7 +27,7 @@ def fetch_daily_data(code, start_date, end_date):
             raw_stock_trading_daily
         WHERE
             `code` = '{0}'
-                AND `date` > '{1}'
+                AND `date` >= '{1}'
                 AND `date` < '{2}' ;
         """.format(code, start_date, end_date)
     rs = db.execute(sql)

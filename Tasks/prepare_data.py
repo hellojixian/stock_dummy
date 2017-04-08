@@ -18,6 +18,10 @@ from Strategies.LuckyOne import handle_data
 # code = 'sh600486'
 # start_date = '2015-01-01'
 # end_date = '2016-12-30'
+#
+# code = 'sh600146'
+# start_date = '2015-01-01'
+# end_date = '2016-12-30'
 
 # ---------------------------
 # start_date = '2016-08-22'
@@ -30,13 +34,10 @@ from Strategies.LuckyOne import handle_data
 # end_date = '2016-12-30'
 
 # 测试数据组 15 - 20元左右
-code = 'sh600146'
-start_date = '2015-05-02'
-start_date = '2016-01-01'
+code = 'sh600201'
+start_date = '2015-01-01'
+start_date = '2015-07-20'
 end_date = '2016-12-30'
-
-
-
 
 prepend_window = 60
 account.cash = 100000
