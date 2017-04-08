@@ -125,14 +125,6 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
 
         account.current_date = data_slice.ix[pos].name
         account.previous_date = data_slice.ix[pos - 1].name
-        # 调用策略
-        m_data = minute_data.loc[account.current_date][:240]
-        for m in range(len(m_data)):
-            account.current_time = m_data.iloc[m]['time']
-            account.current_time = "{:02d}:{:02d}".format(int(account.current_time.seconds / 3600),
-                                                          (account.current_time.seconds % 3600) // 60)
-            account.security_price = m_data.iloc[m]['close']
-            handle_data(account, m_data[:(m + 1)])
 
         # 输出K线图 并且计算收益率
         ax1, ax2, ax3 = plot_kchart(secId, data_slice)
@@ -157,7 +149,14 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                  [min_price, max_price],
                  color='red', alpha=0.5)
 
-
+        # 调用策略
+        m_data = minute_data.loc[account.current_date][:240]
+        for m in range(len(m_data)):
+            account.current_time = m_data.iloc[m]['time']
+            account.current_time = "{:02d}:{:02d}".format(int(account.current_time.seconds / 3600),
+                                                          (account.current_time.seconds % 3600) // 60)
+            account.security_price = m_data.iloc[m]['close']
+            handle_data(account, m_data[:(m + 1)])
 
         ax1.set_ylim(min_price, max_price)
 
