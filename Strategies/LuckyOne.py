@@ -199,6 +199,7 @@ def should_sell(account, data):
     prev_pos = account.history_data.index.get_loc(account.previous_date)
     prev_2 = account.history_data.iloc[prev_pos - 1]
     prev_3 = account.history_data.iloc[prev_pos - 2]
+    prev_4 = account.history_data.iloc[prev_pos - 3]
     prev_close = prev['close']
     prev_open = prev['open']
     open_price = data.iloc[0]['open']
@@ -228,7 +229,10 @@ def should_sell(account, data):
             return True
 
         # 如果昨天是个倒锤子 今天开盘就卖出 上引线大于实体 实体>2%
+        # 并且如果刚刚没有经历过大跌
         if 0.04 > prev['change'] > 0.025 \
+                and prev_3['change'] > - 0.075 \
+                and prev_4['change'] > - 0.075 \
                 and (prev['close'] - prev['open']) / prev['open'] > 0.025 \
                 and ((prev['close'] - prev['open']) / prev['open']) != 0 \
                 and ((prev['high'] - prev['close']) / prev['close']) / (
@@ -307,11 +311,19 @@ def should_sell(account, data):
         print(account.current_date, account.current_time, 'stop loss at the end not growing and long upline')
         return True
 
+    # 连续2涨停 今天出现上影线>4%
+    if len(data) > 220 \
+            and (highest_price - current_price) / highest_price > 0.04 \
+            and prev['change'] > 0.08 and prev_2['change'] > 0.08:
+        print(account.current_date, account.current_time, 'stop winning at the end, yesterday >9% today upline >4%')
+        return True
+
     # 如果昨天的SAR是负数数，使用危险区卖出原则
     # 这些原则都非常谨小慎微
     if prev['sar'] < 0:
         # 在危险区内 如果昨天是红柱 今天高开或者平开，比开盘价走低2个点就卖出
         if (open_price - prev_close) / prev_close > - 0.002 \
+                and (current_price - prev_close) / prev_close < -0.02 \
                 and (current_price - bought_price) / bought_price < -0.02:
             print(account.current_date, 'stop loss - lower than bought price > 2%')
             return True
