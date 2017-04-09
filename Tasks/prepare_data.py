@@ -30,7 +30,7 @@ from Strategies.LuckyOne import handle_data
 # 测试数据组 15 - 20元左右
 code = 'sh600021'
 start_date = '2015-01-01'
-start_date = '2015-04-20'
+start_date = '2015-05-08'
 end_date = '2016-12-30'
 
 prepend_window = 60
