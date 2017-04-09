@@ -12,31 +12,25 @@ from Strategies.LuckyOne import handle_data
 
 # 训练数据组1
 # code = 'sh600552'
-# start_date = '2015-04-10'
+# code = 'sh600201'
+# code = 'sh600486'
+# code = 'sh600146'
+
+# start_date = '2015-01-01'
 # end_date = '2016-12-30'
 
-# code = 'sh600486'
-# start_date = '2015-01-01'
-# end_date = '2016-12-30'
-#
-# code = 'sh600146'
-# start_date = '2015-01-01'
-# end_date = '2016-12-30'
+
+
 
 # ---------------------------
 # start_date = '2016-08-22'
 # start_date = '2015-07-01'
 
 
-# 测试数据组 小价格  10元左右 全是上下影线
-# code = 'sh600819'
-# start_date = '2015-01-15'
-# end_date = '2016-12-30'
-
 # 测试数据组 15 - 20元左右
-code = 'sh600201'
+code = 'sh600021'
 start_date = '2015-01-01'
-start_date = '2016-11-30'
+start_date = '2015-04-20'
 end_date = '2016-12-30'
 
 prepend_window = 60
