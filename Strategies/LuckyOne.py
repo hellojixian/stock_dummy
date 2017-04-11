@@ -122,7 +122,7 @@ def should_buy(account, data):
 
         # 单一十字星 高开高走一点点 昨天不能跌太狠
         if np.abs((prev_close - prev['open']) / prev['open']) < 0.015 \
-                and (current_price - prev_close) / prev_close > 0.02 \
+                and -0.45 > (current_price - prev_close) / prev_close > 0.02 \
                 and (current_price - open_price) / open_price > 0.016 \
                 and (open_price - prev_close) / prev_close > 0.001 \
                 and prev['change'] > -0.045:
@@ -169,8 +169,9 @@ def should_buy(account, data):
                 strategy_info['too_violent_today'] = True
                 return False
 
+    if data_len > 120:
         # 抄底 早盘跌倒 -5% 反弹回-1.5%
-        if data_len > 120 and (lowest_price - prev_close) / prev_close < -0.05 \
+        if (lowest_price - prev_close) / prev_close < -0.05 \
                 and (current_price - prev_close) / prev_close > -0.02 \
                 and 30 < lowest_price_pos < 120:
             if has_touch_bottom_jump_up(data[:lowest_price_pos], prev_close) is False:
@@ -181,6 +182,24 @@ def should_buy(account, data):
                       'too violent today - today already touched bottom but still dropping')
                 strategy_info['too_violent_today'] = True
                 return False
+
+        # 低开涨过了昨天的最高价
+        if (open_price - prev_close) / prev_close < - 0.01 \
+                and (prev['close'] - prev['open']) / prev['open'] < 0.005 \
+                and (current_price - prev['high']) / prev['high'] > 0:
+            print(account.current_date, account.current_time,
+                  'buy - low open grow higher than yesterday highest')
+            return True
+
+    if data_len > 150:
+        # 低开一直盘着，昨天有支撑
+        if (prev['low'] - prev['open']) / prev['open'] < -0.04 \
+                and -0.015 < (open_price - prev_close) / prev_close < 0.01 \
+                and (highest_price - prev_close) / prev_close < 0.011 \
+                and (lowest_price - prev_close) / prev_close > -0.012:
+            print(account.current_date, account.current_time,
+                  'buy - low open and yesterday have downline, not break prev_close until afternoon')
+            return True
 
         # --------- 这个策略 风险最高 获利可能性也最大 可以抵抗连续十字星 ------------
         # 触底反弹 最低价已经下跌 < -0.06 当前价已经相对于最低价反弹了3个点
@@ -285,8 +304,8 @@ def should_buy(account, data):
             and prev_close < prev['open'] \
             and (current_price - lowest_price) / lowest_price > 0.03 \
             and (highest_price - current_price) / highest_price < 0.005 \
-            and (open_price - prev_close) / prev_close > - 0.02\
-            and (current_price - highest_price_morning) /highest_price_morning > 0.01 :
+            and (open_price - prev_close) / prev_close > - 0.02 \
+            and (current_price - highest_price_morning) / highest_price_morning > 0.01:
         print(account.current_date, account.current_time,
               'buy - at the end (180m) price is already higher than lowest 3%')
         return True
@@ -331,7 +350,7 @@ def should_buy(account, data):
             return True
 
         # < 昨天绿柱 -8% 平开，最低价没有跌破 1% 下午则买入 最高价没超过4%
-        if (prev['close'] - prev['open'] ) / prev['open'] < -0.05 \
+        if (prev['close'] - prev['open']) / prev['open'] < -0.05 \
                 and prev['change'] < -0.08 \
                 and np.abs((open_price - prev_close) / prev_close) < 0.005 \
                 and (lowest_price - prev_close) / prev_close > -0.01 \
@@ -446,7 +465,16 @@ def should_sell(account, data):
 
     # todo: 如果昨天刚买但是买成了绿柱>0.005 只要见高就卖出 !!!
 
-    # todo: 如果昨天刚买星星的上影线（包括实体） 今天只要涨回来就卖出
+    # 如果昨天买成了倒垂头 今天还低开 见高就止损卖出
+    if np.abs((prev['close'] - prev['open']) / prev['open']) < 0.01 \
+            and (prev['low'] - prev['high']) / prev['high'] < -0.06 \
+            and (prev['high'] - prev['open']) / prev['open'] < 0.01 \
+            and (open_price - prev_close) / prev_close < -0.025:
+        if (current_price - prev_close) / prev_close > - 0.02:
+            print(account.current_date, account.current_time,
+                  'stop loss - low open after is a T')
+            return True
+
     # 按正确的原则 策略不应该买在星星上
 
     # 如果昨天是十字星，今天跳水< -0.04%开盘 那么距离最高价 1个点就卖出
