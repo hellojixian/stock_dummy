@@ -375,10 +375,11 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                         and account.current_date == account.transcations.ix[-1].name):
                 today_realtime_ax.add_patch(patches.Rectangle((0, start_), width=240, height=height,
                                                               color=color, alpha=0.15))
+                today_realtime_ax.plot([0, 240], [bought_price, bought_price],
+                                       color='red', alpha=0.6, linestyle='--', linewidth=0.5)
                 pass
 
-            today_realtime_ax.plot([0, 240], [bought_price, bought_price],
-                                   color='red', alpha=0.6, linestyle='--', linewidth=0.5)
+
 
             # 如果今日卖出，标记本次交易是否获利
             if account.transcations.iloc[-1]['action'] == 'sell' \

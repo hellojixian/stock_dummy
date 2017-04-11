@@ -31,6 +31,7 @@ from Strategies.LuckyOne import handle_data
 code = 'sh600021'
 start_date = '2015-01-01'
 start_date = '2015-11-27'
+start_date = '2016-03-23'
 end_date = '2016-12-30'
 
 prepend_window = 60

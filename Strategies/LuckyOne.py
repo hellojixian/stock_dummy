@@ -463,6 +463,15 @@ def should_sell(account, data):
             and (current_price - prev_close) / prev_close > - 0.005:
         return False
 
+    # 如果昨天买在了上影线，今天低开，超过开盘价就卖出
+    if data_len > 30:
+        if bought_price < prev['high'] \
+                and np.abs((prev['close'] - prev['open']) / prev['open']) < 0.01 \
+                and (prev['close'] > prev['open'] and (bought_price - prev['close']) / prev['close'] > 0.015) \
+                and (current_price - prev_close) / prev_close > 0.005:
+            print(account.current_date, account.current_time, 'stop risk, yesterday bought a star')
+            return True
+
     # todo: 如果昨天刚买但是买成了绿柱>0.005 只要见高就卖出 !!!
 
     # 如果昨天买成了倒垂头 今天还低开 见高就止损卖出
@@ -653,6 +662,13 @@ def should_sell(account, data):
                 and current_change != 0 \
                 and ((highest_price - current_price) / current_price) / current_change > 1.1:
             print(account.current_date, account.current_time, 'stop loss today at the end upline is greater than body')
+            return True
+
+        # 尾盘，如果昨天有上影线，并且今天最高价没有突破昨天的最高价，那么就在尾盘卖出
+        if (prev['high'] - prev['open']) / prev['open'] > 0.04 \
+                and np.abs((prev['close'] - prev['open']) / prev['open']) < 0.02 \
+                and highest_price < prev['high']:
+            print(account.current_date, account.current_time, 'sell in the afternoon, no power to grow')
             return True
 
     # 如果昨天的SAR是负数数，使用危险区卖出原则
