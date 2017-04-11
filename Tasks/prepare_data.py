@@ -30,8 +30,8 @@ from Strategies.LuckyOne import handle_data
 # 测试数据组 15 - 20元左右
 code = 'sh600021'
 start_date = '2015-01-01'
-start_date = '2015-05-08'
-start_date = '2015-08-27' # 这里下跌中有一个 8%损失没有处理
+start_date = '2015-11-27'
+start_date = '2016-02-18'
 end_date = '2016-12-30'
 
 prepend_window = 60

@@ -377,6 +377,9 @@ def back_test(secId, daily_data, window_size, minute_data, handle_data):
                                                               color=color, alpha=0.15))
                 pass
 
+            today_realtime_ax.plot([0, 240], [bought_price, bought_price],
+                                   color='red', alpha=0.6, linestyle='--', linewidth=0.5)
+
             # 如果今日卖出，标记本次交易是否获利
             if account.transcations.iloc[-1]['action'] == 'sell' \
                     and account.current_date == account.transcations.ix[-1].name:
