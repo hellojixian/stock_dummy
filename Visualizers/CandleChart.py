@@ -153,7 +153,7 @@ def plot_realtime_chart(ax, m_data, params):
                 va='top', ha='right', weight='bold',
                 color='red', fontsize=10)
 
-    y_labels = ["", "", "- 9%", "", "- 7%", "", "- 5%", "", "- 3%", "", "- 1%", "-",
+    y_labels = ["", "", "- 9%", "", "- 7%", "", "- 5%", "", "- 3%", "", "- 1%", "------",
                 "1%", "", "3%", "", "5%", "", "7%", "", "9%", "", ""]
     ax.set_yticks(np.linspace(price_limit_min, price_limit_max, 23), minor=False)
     ax.set_yticklabels(y_labels, minor=False)

@@ -207,6 +207,21 @@ def should_buy(account, data):
                 print(account.current_date, account.current_time, 'buy after 1.5 hour open, today > 2%')
                 return True
 
+    if 120 > len(data) > 90:
+        # 昨天小涨幅
+        if prev['change'] > 0.5 \
+                and (open_price - prev_close) / prev_close > - 0.01 \
+                and (current_price - open_price) / open_price > 0.035:
+            print(account.current_date, account.current_time, 'buy after 1.5 hour open, today > 3.5%')
+            return True
+
+        # 昨天没跌太狠
+        if 0.02 > prev['change'] > -0.5 \
+                and (open_price - prev_close) / prev_close > - 0.02 \
+                and (current_price - open_price) / open_price > 0.035:
+            print(account.current_date, account.current_time, 'buy after 1.5 hour open, today > 3.5%')
+            return True
+
     # 尾盘200分钟以后 大于1.5 且没有上引线 并且举例最低点3个点
     upline = (highest_price - current_price)
     if len(data) > 200 \
@@ -256,14 +271,15 @@ def should_buy(account, data):
                 and (current_price - lowest_price) / lowest_price > 0.045 \
                 and (current_price - open_price) / open_price > 0.01 \
                 and (highest_price - current_price) / highest_price < 0.02 \
-                and (open_price - prev_close) / prev_close > -0.02:
+                and (open_price - prev_close) / prev_close > -0.02 \
+                and current_change < 0.04:
             print(account.current_date, account.current_time,
                   'buy - today downline is >4.5% and current grow >1%, try luck !')
             return True
 
     # 低开 高过昨天收盘价 昨天是阳柱子>0.01 且高于最低价>0.02
     if len(data) > 60:
-        if prev['change'] > 0 and (prev_close - prev['open']) / prev['open'] > 0.015 \
+        if 0.06 > prev['change'] > 0 and (prev_close - prev['open']) / prev['open'] > 0.015 \
                 and open_price < prev_close \
                 and (current_price - lowest_price) / lowest_price > 0.02 \
                 and (current_price - prev_close) / prev_close > 0.05:
@@ -344,6 +360,11 @@ def should_sell(account, data):
             and prev['close'] == prev['high'] \
             and (open_price - prev_close) / prev_close > - 0.005 \
             and prev['change'] < 0.07:
+        return False
+
+    # 如果高开两个点 没有跌破 > -0.005 昨日收盘价 就拿着
+    if (open_price - prev_close) / prev_close > 0.02 \
+            and (current_price - prev_close) / prev_close > - 0.005:
         return False
 
     # todo: 如果昨天刚买但是买成了绿柱>0.005 只要见高就卖出 !!!
