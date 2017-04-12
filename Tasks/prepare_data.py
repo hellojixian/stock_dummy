@@ -15,6 +15,7 @@ from Strategies.LuckyOne import handle_data
 # code = 'sh600201'
 # code = 'sh600486'
 # code = 'sh600146'
+# code = 'sh600021' # - 这个股票训练了很多高风险 买十字星的策略
 
 # start_date = '2015-01-01'
 # end_date = '2016-12-30'
@@ -30,8 +31,7 @@ from Strategies.LuckyOne import handle_data
 # 测试数据组 15 - 20元左右
 code = 'sh600021'
 start_date = '2015-01-01'
-start_date = '2015-11-27'
-start_date = '2016-03-23'
+start_date = '2015-04-23'
 end_date = '2016-12-30'
 
 prepend_window = 60
