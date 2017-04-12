@@ -24,3 +24,14 @@
 如果前面22交易日只有2连红 那么第二天只要高开就卖出
 
 如果错买了十字星，未来10天就等下午14：00点以后在买入
+
+
+# 动态画图
+## 曲线
+current_jump = (current_price - lowest_price) / lowest_price
+current_drop = (current_price - highest_price) / highest_price
+current_upline
+current_downline
+
+## 直线
+current_return = (current_price - bought_price) / bought_price 

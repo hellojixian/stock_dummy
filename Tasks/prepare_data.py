@@ -32,7 +32,7 @@ from Strategies.LuckyOne import handle_data
 code = 'sh600021'
 start_date = '2015-01-01'
 start_date = '2015-04-23'
-start_date = '2015-07-16'
+# start_date = '2015-07-16'
 end_date = '2016-12-30'
 
 prepend_window = 60
