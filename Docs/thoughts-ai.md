@@ -46,6 +46,32 @@ current_downline
 current_return = (current_price - bought_price) / bought_price 
 
 
+# 要做的事情
+先画图
+标记买入日
+测试买入点
+计算概率
+训练数据必须是100%争取
+测试数据只统计胜率
+然后训练进化能力
+
+
+# Knowledge entity
+```
+entity_id
+static ranges
+dynamic ranges
+total_win_count
+total_win_score
+total_loss_count
+total_loss_score
+exceptions
+    - rules
+    - timestamp
+last_activation_timestamp
+last_activation_result
+max_allowed_fund_rate
+```
 
 https://matplotlib.org/examples/pylab_examples/barchart_demo2.html
 https://matplotlib.org/examples/pylab_examples/barchart_demo.html
