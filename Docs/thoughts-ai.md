@@ -59,20 +59,86 @@ current_return = (current_price - bought_price) / bought_price
 # Knowledge entity
 ```
 entity_id
-static ranges
-dynamic ranges
-total_win_count
-total_win_score
-total_loss_count
-total_loss_score
+ranges:
+    - static ranges
+    - dynamic ranges
+preformance:
+    - total_win_count
+    - total_win_score
+    - total_loss_count
+    - total_loss_score
 exceptions
     - rules
     - timestamp
-last_activation_timestamp
-last_activation_result
-max_allowed_fund_rate
+last_activation
+    - result
+    - timestamp
+    - sec_id
+limit:    
+    - max_allowed_fund_rate
+    - max_stop_loss_rate
 ```
 
+# Engine
+```
+提供买卖接口
+对基线收益进行结算，
+标注数据
+    基础数据
+    回测所需要的数据
+        利润统计
+        买卖交易数据
+        
+也许引擎的工作应该是纯数据的调用
+图形输出应该氛围模块化
+每一个图标所需要的数据都是不一样的，应该分别调试不同的图表
+但是总的UI输出框架可以由引擎负责，这样方便模块化处理               
+```
+
+* 提供动态数据 tick分钟
+* 提供接口允许策略获取必须的数据
+* 引擎可视化部分也可以有接口来获取自己需要的那部分数据
+* 提供交易接口
+* 输出记录买卖日志
+
+# Transcation Entity
+```
+transcation:
+    date
+    time
+    action - [buy,sell]
+    price
+    vol
+    pattern_id
+    fee
+```
+- a trade has many buy action and one sell action
+```
+trade:    
+    - buy_actions 
+        - [ t_id ]
+    - sell_action
+        - t_id
+    - start_time
+    - end_time
+    - duration
+    - total_return
+    - daily_return
+    - fee 
+```
+
+# TODO：
+- 重新搭建引擎接口
+- 允许多次买入，只要还有钱就可以买入
+- 允许多次卖出，只要还有货，且不是当天购买的就可以卖出
+
+# Note
+按这个链接来看 每次买入和卖出后至少0.8个点才算平本
+每次单方向交易成本大约0.4%
+- http://baike.baidu.com/item/%E8%82%A1%E7%A5%A8%E4%BA%A4%E6%98%93%E6%89%8B%E7%BB%AD%E8%B4%B9
+- http://chaoshi.pingan.com/tool/gupiao.shtml
+
+# Reference
 https://matplotlib.org/examples/pylab_examples/barchart_demo2.html
 https://matplotlib.org/examples/pylab_examples/barchart_demo.html
 https://matplotlib.org/examples/pylab_examples/axes_demo.html

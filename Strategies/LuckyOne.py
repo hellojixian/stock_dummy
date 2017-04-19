@@ -543,7 +543,7 @@ def should_sell(account, data):
             print(account.current_date, account.current_time, 'stop risk, yesterday bought a star')
             return True
 
-    # todo: 如果昨天刚买但是买成了绿柱>0.005 只要见高就卖出 !!!
+    # xtodo: 如果昨天刚买但是买成了绿柱>0.005 只要见高就卖出 !!!
 
     # 如果昨天买成了倒垂头 今天还低开 见高就止损卖出
     if np.abs(prev_bar) < 0.01 \
@@ -988,7 +988,7 @@ def should_ignore_buy_signal_exception(account, data):
             # 从最低点到现在 没有更高点(> -0.01)了
             lowest_price_pos = list(data['low'].values).index(lowest_price)
             highest_price_after_lowest = np.max(data[lowest_price_pos:]['high'].values)
-            # todo: 当前价高过错过的最高点
+            # xtodo: 当前价高过错过的最高点
             if (highest_price_after_lowest - prev_close) / prev_close > - 0.015 \
                     and (current_price - highest_price_after_lowest) / highest_price_after_lowest > 0.05:
                 # 如果有 太危险了，直接尾盘再见
