@@ -9,12 +9,6 @@ from Engine.MainEngineV2 import Engine
 
 
 class Dispatcher:
-    '''
-    任务调度器，
-    每个引擎处理一只股票的回测
-    调度器可以模拟多个引擎（机器人）同时操盘一个共享资金账户的情况
-    '''
-
     def __init__(self, account, sec_ids, start_date, end_date, data_callback):
         self._account = account
         self._sec_ids = sec_ids
@@ -26,7 +20,7 @@ class Dispatcher:
         if len(sec_ids) == 0:
             return
         for sec_id in sec_ids:
-            engine = Engine(sec_id, start_date, end_date)
+            engine = Engine(account, sec_id, start_date, end_date)
             engine.init()
             self._engines.append(engine)
 
@@ -38,6 +32,9 @@ class Dispatcher:
 
         start_date = datetime.strptime(self._start_date, "%Y-%m-%d").date()
         end_date = datetime.strptime(self._end_date, "%Y-%m-%d").date()
+        account = self._account
+
+        self._init_account_baseline()
 
         def date_range(_start_date, _end_date):
             for n in range(int((_end_date - _start_date).days)):
@@ -46,7 +43,7 @@ class Dispatcher:
         # 生成分钟字符串索引 每天240分钟
         # 09:30 + 120min | 13:00 + 120min
         trading_mintues = []
-        morning_open = 32400
+        morning_open = 34200
         afternoon_open = 46800
         for i in range(240):
             if i < 120:
@@ -63,6 +60,28 @@ class Dispatcher:
             # 按交易分钟循环
             for current_minute in trading_mintues:
                 # 分别触发每只股票的引擎
+                security_quotes = {}
                 for engine in self._engines:
-                    engine.tick(current_date, current_minute)
+                    account.current_date = current_date
+                    account.current_minute = current_minute
+                    if engine.has_data():
+                        security_quotes[engine.get_security_id()] = engine.get_security_price()
+                        engine.tick()
+                # 触发账户每日自动结算
+                account.baseline_update(security_quotes)
+                account.daily_update()
+
+            # 触发引擎每日更新
+            for engine in self._engines:
+                engine.daily_update()
+
+        return
+
+    def _init_account_baseline(self):
+        # 初始化账户的基线收益计算
+        account = self._account
+        security_quotes = {}
+        for engine in self._engines:
+            security_quotes[engine.get_security_id()] = engine.get_security_init_price()
+        account.baseline_init(security_quotes)
         return
