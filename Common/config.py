@@ -17,6 +17,7 @@ sys.path.append(PROJECT_ROOT)
 CACHE_DIR = os.path.join(PROJECT_ROOT, 'CacheRoot')
 MODEL_DIR = os.path.join(PROJECT_ROOT, 'ModelParameters')
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'Output')
+LOG_DIR = os.path.join(PROJECT_ROOT, 'Logs')
 
 pd.set_option('display.width', 2000)
 pd.set_option('display.max_columns', 200)

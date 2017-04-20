@@ -6,6 +6,7 @@
 
 from datetime import timedelta, datetime
 from Engine.MainEngineV2 import Engine
+import matplotlib.pyplot as plt
 
 
 class Dispatcher:
@@ -19,6 +20,7 @@ class Dispatcher:
         self._engines = []
         if len(sec_ids) == 0:
             return
+
         for sec_id in sec_ids:
             engine = Engine(account, sec_id, start_date, end_date)
             engine.init()
@@ -33,6 +35,7 @@ class Dispatcher:
         start_date = datetime.strptime(self._start_date, "%Y-%m-%d").date()
         end_date = datetime.strptime(self._end_date, "%Y-%m-%d").date()
         account = self._account
+        plt.ion()
 
         self._init_account_baseline()
 
@@ -50,20 +53,20 @@ class Dispatcher:
                 current_sec = morning_open + (i + 1) * 60
             else:
                 current_sec = afternoon_open + (i + 1 - 120) * 60
-            current_minute = "{:02d}:{:02d}".format(int(current_sec / 3600),
+            current_time = "{:02d}:{:02d}".format(int(current_sec / 3600),
                                                     int((current_sec % 3600) / 60))
-            trading_mintues.append(current_minute)
+            trading_mintues.append(current_time)
 
         # 按自然日循环
         for current_date in date_range(start_date, end_date):
             current_date = current_date.strftime("%Y-%m-%d")
             # 按交易分钟循环
-            for current_minute in trading_mintues:
+            for current_time in trading_mintues:
                 # 分别触发每只股票的引擎
                 security_quotes = {}
                 for engine in self._engines:
                     account.current_date = current_date
-                    account.current_minute = current_minute
+                    account.current_time = current_time
                     if engine.has_data():
                         security_quotes[engine.get_security_id()] = engine.get_security_price()
                         engine.tick()
@@ -74,7 +77,11 @@ class Dispatcher:
             # 触发引擎每日更新
             for engine in self._engines:
                 engine.daily_update()
+            plt.pause(0.01)
 
+        # back test finished
+        plt.ioff()
+        plt.show()
         return
 
     def _init_account_baseline(self):

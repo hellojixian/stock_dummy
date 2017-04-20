@@ -8,6 +8,7 @@ class Account:
     def __init__(self, init_cash=10000, baseline_sec=[]):
         self._init_cash = init_cash
         self._baseline_vol = {}
+        self._baseline_latest_price = {}
         self._baseline_cash = init_cash
         self._baseline_init_cash = init_cash
         self._baseline_return = 100
@@ -23,15 +24,26 @@ class Account:
         for quote, price in quotes.items():
             vol = int(max_available_fund / (price * 100))
             cost = vol * price * 100
+            self._baseline_latest_price[quote] = price
             self._baseline_vol[quote] = vol
             self._baseline_cash -= cost
         return
 
     def baseline_update(self, quotes):
         # 动态计算基线的回报率
+        if len(quotes) == 0:
+            return
         value = 0
         value += self._baseline_cash
         for quote, price in self._baseline_vol.items():
+            if quote in quotes.keys():
+                price = quotes[quote]
+                self._baseline_latest_price[quote] = price
+            else:
+                price = self._baseline_latest_price[quote]
             value += self._baseline_vol[quote] * price * 100
-        self._baseline_return = (((value - self._baseline_init_cash) / self._baseline_init_cash) - 1) * 100
+        self._baseline_return = ((value - self._baseline_init_cash) / self._baseline_init_cash) * 100
+        return self._baseline_return
+
+    def baseline_return(self):
         return self._baseline_return

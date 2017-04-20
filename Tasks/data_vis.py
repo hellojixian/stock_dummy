@@ -22,7 +22,7 @@ sec_list = ['sh600552',
             'sh600201']
 
 start_date = '2015-01-01'
-end_date = '2016-12-30'
+end_date = '2015-12-30'
 
 init_cash = 100000
 
@@ -33,12 +33,3 @@ dispatcher = Dispatcher(account=Account(init_cash=init_cash),
                         end_date=end_date,
                         data_callback=handle_data)
 dispatcher.back_test()
-
-# prepend_window = 60
-# data = fetch_daily_data(code, start_date, end_date)
-# prepend_data = fetch_daily_history_data(code, start_date, range=prepend_window)
-# data = extract_daily_features(prepend_data.append(data))
-# minute_data = fetch_minutes_data(code, start_date, end_date)
-#
-# back_test(code, data, prepend_window,
-#           minute_data, handle_data)
