@@ -22,3 +22,6 @@ LOG_DIR = os.path.join(PROJECT_ROOT, 'Logs')
 pd.set_option('display.width', 2000)
 pd.set_option('display.max_columns', 200)
 pd.set_option('display.max_rows', 2000)
+
+LARGE_FONT_SIZE = 10
+MIDDLE_FONT_SIZE = 9

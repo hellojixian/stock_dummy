@@ -64,15 +64,19 @@ class Dispatcher:
             for current_time in trading_mintues:
                 # 分别触发每只股票的引擎
                 security_quotes = {}
+                has_data = False
                 for engine in self._engines:
                     account.current_date = current_date
                     account.current_time = current_time
                     if engine.has_data():
+                        has_data = True
                         security_quotes[engine.get_security_id()] = engine.get_security_price()
                         engine.tick()
                 # 触发账户每日自动结算
-                account.baseline_update(security_quotes)
-                account.daily_update()
+                if has_data:
+                    account.baseline_update(security_quotes)
+                    account.strategies_update(security_quotes)
+                    account.daily_update()
 
             # 触发引擎每日更新
             for engine in self._engines:

@@ -30,6 +30,7 @@ class Engine:
         self._minutes_data = None
         self._daily_prepend_window = 60
         self._tick_count = 0
+        self._day_count = 0
         self._visualizers = {
             'kchart': None,
             'realtime': None,
@@ -47,9 +48,9 @@ class Engine:
 
     def get_security_price(self):
         # 从account里面获取时间 获取当时收盘价
-        current_date = self._account.current_date
+        current_date = self.get_account().current_date
         current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
-        current_time = self._account.current_time
+        current_time = self.get_account().current_time
         h = current_time[0:2]
         m = current_time[3:5]
         seconds = int(h) * 3600 + int(m) * 60
@@ -58,7 +59,7 @@ class Engine:
         return rec['close']
 
     def has_data(self):
-        current_date = self._account.current_date
+        current_date = self.get_account().current_date
         current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
         return current_date in self._minutes_data.index.values
 
@@ -69,6 +70,12 @@ class Engine:
 
     def get_account(self):
         return self._account
+
+    def get_tick_count(self):
+        return self._tick_count
+
+    def get_day_count(self):
+        return self._day_count
 
     # 初始化数据，
     def _prepare_data(self):
@@ -117,7 +124,7 @@ class Engine:
         return
 
     def _save_screenshot(self):
-        fig_name = "{}-{}-{}.png".format(self._sec_id, self._tick_count, self._account.current_date)
+        fig_name = "{}-{}-{}.png".format(self._sec_id, self._day_count, self.get_account().current_date)
         plt.savefig(os.path.join(config.OUTPUT_DIR, fig_name), format='png')
         return
 
@@ -135,9 +142,14 @@ class Engine:
     # 每天交易完成后更新各种状态
     # 例如利润结算，并且决定是否要触发学习
     def daily_update(self):
+        # update counter
+        self._tick_count = 0
+        self._day_count += 1
+
         # update UI output
         self._update_visualizer()
         self._save_screenshot()
+
         pass
 
     def init(self):
@@ -148,12 +160,12 @@ class Engine:
         pass
 
     def tick(self):
-        print('--', self._sec_id, self._account.current_date, self._account.current_time)
+        # print('--', self._sec_id, self.get_account().current_date, self.get_account().current_time)
         # check
         if callable(self._data_callback) is False:
             return
 
-        if self._account is None:
+        if self.get_account() is None:
             return
 
         # setup account security price
@@ -163,7 +175,8 @@ class Engine:
         }
 
         # trigger callback
-        self._data_callback(self._account, data)
+        self._data_callback(self.get_account(), data)
 
         self._tick_count += 1
+        print('tick_count:',self._tick_count)
         return
