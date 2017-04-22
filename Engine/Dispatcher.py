@@ -60,11 +60,11 @@ class Dispatcher:
         # 按自然日循环
         for current_date in date_range(start_date, end_date):
             current_date = current_date.strftime("%Y-%m-%d")
+            has_data = False
             # 按交易分钟循环
             for current_time in trading_mintues:
                 # 分别触发每只股票的引擎
                 security_quotes = {}
-                has_data = False
                 for engine in self._engines:
                     account.current_date = current_date
                     account.current_time = current_time

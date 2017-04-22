@@ -25,3 +25,4 @@ pd.set_option('display.max_rows', 2000)
 
 LARGE_FONT_SIZE = 10
 MIDDLE_FONT_SIZE = 9
+SMALL_FONT_SIZE = 7

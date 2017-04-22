@@ -28,11 +28,11 @@ class Account:
         更新基线收益率 将全部资金分仓买入个股票
         """
         max_available_fund = self._baseline_cash / len(quotes)
-        for quote, price in quotes.items():
+        for sec_id, price in quotes.items():
             vol = int(max_available_fund / (price * 100))
             cost = vol * price * 100
-            self._security_latest_price[quote] = price
-            self._baseline_vol[quote] = vol
+            self._security_latest_price[sec_id] = price
+            self._baseline_vol[sec_id] = vol
             self._baseline_cash -= cost
         return
 
@@ -44,13 +44,13 @@ class Account:
             return
         value = 0
         value += self._baseline_cash
-        for quote, price in self._baseline_vol.items():
-            if quote in quotes.keys():
-                price = quotes[quote]
-                self._security_latest_price[quote] = price
+        for sec_id, price in self._baseline_vol.items():
+            if sec_id in quotes.keys():
+                price = quotes[sec_id]
+                self._security_latest_price[sec_id] = price
             else:
-                price = self._security_latest_price[quote]
-            value += self._baseline_vol[quote] * price * 100
+                price = self._security_latest_price[sec_id]
+            value += self._baseline_vol[sec_id] * price * 100
         self._baseline_return = ((value - self._baseline_init_cash) / self._baseline_init_cash) * 100
         self._baseline_return = round(self._baseline_return, 2)
         return self._baseline_return
@@ -67,17 +67,19 @@ class Account:
         """
         value = 0
         value += self._cash
-        for quote, price in self._vol.items():
-            if quote in quotes.keys():
-                price = quotes[quote]
-                self._security_latest_price[quote] = price
+        for sec_id, price in self._vol.items():
+            if sec_id in quotes.keys():
+                price = quotes[sec_id]
+                self._security_latest_price[sec_id] = price
             else:
-                price = self._security_latest_price[quote]
-            value += self._vol[quote] * price * 100
+                price = self._security_latest_price[sec_id]
+            value += self._vol[sec_id] * price * 100
         self._strategies_return = ((value - self._init_cash) / self._init_cash) * 100
         self._strategies_return = round(self._strategies_return, 2)
         return self._strategies_return
 
+    def get_security_price(self, sec_id):
+        return self._security_latest_price[sec_id]
 
     def strategies_return(self):
         """

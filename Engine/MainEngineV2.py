@@ -77,6 +77,12 @@ class Engine:
     def get_day_count(self):
         return self._day_count
 
+    def get_daily_data(self):
+        return self._daily_data
+
+    def get_sec_id(self):
+        return self._sec_id
+
     # 初始化数据，
     def _prepare_data(self):
         self._daily_data = None
@@ -118,14 +124,21 @@ class Engine:
 
     def _clean_output(self):
         # 清空输出目录
-        for cur, _dirs, files in os.walk(config.OUTPUT_DIR):
+        for cur, dirs, files in os.walk(config.OUTPUT_DIR):
             for f in files:
                 os.remove(os.path.join(cur, f))
+        for cur, dirs, files in os.walk(config.OUTPUT_DIR):
+            for d in dirs:
+                os.rmdir(os.path.join(cur, d))
         return
 
     def _save_screenshot(self):
+        dir = os.path.join(config.OUTPUT_DIR, self._sec_id)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         fig_name = "{}-{}-{}.png".format(self._sec_id, self._day_count, self.get_account().current_date)
-        plt.savefig(os.path.join(config.OUTPUT_DIR, fig_name), format='png')
+        plt.figure(self._figure.number)
+        plt.savefig(os.path.join(config.OUTPUT_DIR, self._sec_id, fig_name), format='png')
         return
 
     # 更新各自需要被更新的可视化视图
@@ -142,14 +155,16 @@ class Engine:
     # 每天交易完成后更新各种状态
     # 例如利润结算，并且决定是否要触发学习
     def daily_update(self):
-        # update counter
-        self._tick_count = 0
-        self._day_count += 1
+        if self.has_data() is False:
+            return
 
         # update UI output
         self._update_visualizer()
         self._save_screenshot()
 
+        # update counter
+        self._tick_count = 0
+        self._day_count += 1
         pass
 
     def init(self):
