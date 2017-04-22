@@ -17,14 +17,14 @@ class Dispatcher:
         self._end_date = end_date
         self._data_callback = data_callback
 
-        self._engines = []
+        self._engines = {}
         if len(sec_ids) == 0:
             return
 
         for sec_id in sec_ids:
             engine = Engine(account, sec_id, start_date, end_date)
             engine.init()
-            self._engines.append(engine)
+            self._engines[sec_id] = engine
 
         pass
 
@@ -54,32 +54,32 @@ class Dispatcher:
             else:
                 current_sec = afternoon_open + (i + 1 - 120) * 60
             current_time = "{:02d}:{:02d}".format(int(current_sec / 3600),
-                                                    int((current_sec % 3600) / 60))
+                                                  int((current_sec % 3600) / 60))
             trading_mintues.append(current_time)
 
         # 按自然日循环
         for current_date in date_range(start_date, end_date):
             current_date = current_date.strftime("%Y-%m-%d")
+            account.current_date = current_date
             has_data = False
             # 按交易分钟循环
             for current_time in trading_mintues:
                 # 分别触发每只股票的引擎
                 security_quotes = {}
-                for engine in self._engines:
-                    account.current_date = current_date
-                    account.current_time = current_time
+                account.current_time = current_time
+                for sec_id, engine in self._engines.items():
                     if engine.has_data():
                         has_data = True
                         security_quotes[engine.get_security_id()] = engine.get_security_price()
                         engine.tick()
-                # 触发账户每日自动结算
-                if has_data:
-                    account.baseline_update(security_quotes)
-                    account.strategies_update(security_quotes)
-                    account.daily_update()
+            # 触发账户每日自动结算
+            if has_data:
+                account.baseline_update(security_quotes, self._engines)
+                account.strategies_update(security_quotes, self._engines)
+                account.daily_update()
 
             # 触发引擎每日更新
-            for engine in self._engines:
+            for sec_id, engine in self._engines.items():
                 engine.daily_update()
             plt.pause(0.01)
 
@@ -92,7 +92,7 @@ class Dispatcher:
         # 初始化账户的基线收益计算
         account = self._account
         security_quotes = {}
-        for engine in self._engines:
+        for sec_id, engine in self._engines.items():
             security_quotes[engine.get_security_id()] = engine.get_security_init_price()
         account.baseline_init(security_quotes)
         return

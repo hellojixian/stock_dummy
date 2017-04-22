@@ -15,6 +15,8 @@ class Account:
         self._baseline_init_cash = init_cash
         self._baseline_return = 0
         self._strategies_return = 0
+        self.current_date = None
+        self.current_time = None
         pass
 
     def daily_update(self):
@@ -36,7 +38,7 @@ class Account:
             self._baseline_cash -= cost
         return
 
-    def baseline_update(self, quotes):
+    def baseline_update(self, quotes, engines):
         """
         动态计算基线的回报率
         """
@@ -50,6 +52,18 @@ class Account:
                 self._security_latest_price[sec_id] = price
             else:
                 price = self._security_latest_price[sec_id]
+            engine = engines[sec_id]
+            if engine.has_data():
+                prev_close = engine.get_prev_close()
+                open_price = engine.get_open_price()
+                if (open_price - prev_close) / prev_close < -0.12:
+                    # 处理SPO的特殊情况逻辑
+                    money = float(self._baseline_vol[sec_id] * prev_close * 100)
+                    new_vol = int(money / (open_price * 100))
+                    new_cost = float(new_vol * open_price * 100)
+                    self._baseline_vol[sec_id] = new_vol
+                    self._baseline_cash += float(money - new_cost)
+                    value += float(money - new_cost)
             value += self._baseline_vol[sec_id] * price * 100
         self._baseline_return = ((value - self._baseline_init_cash) / self._baseline_init_cash) * 100
         self._baseline_return = round(self._baseline_return, 2)
@@ -61,7 +75,7 @@ class Account:
         """
         return self._baseline_return
 
-    def strategies_update(self, quotes):
+    def strategies_update(self, quotes, engines):
         """
         动态计算策略的回报率
         """

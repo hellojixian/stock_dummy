@@ -83,6 +83,19 @@ class Engine:
     def get_sec_id(self):
         return self._sec_id
 
+    def get_prev_date(self):
+        current_date = datetime.strptime(self._account.current_date, "%Y-%m-%d").date()
+        pos = self._daily_data.index.get_loc(current_date)
+        return self._daily_data.iloc[(pos - 1)].name
+
+    def get_prev_close(self):
+        prev_date = self.get_prev_date()
+        return self._daily_data.loc[prev_date]['close']
+
+    def get_open_price(self):
+        current_date = datetime.strptime(self._account.current_date, "%Y-%m-%d").date()
+        return self._daily_data.loc[current_date]['open']
+
     # 初始化数据，
     def _prepare_data(self):
         self._daily_data = None
