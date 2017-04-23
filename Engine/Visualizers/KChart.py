@@ -11,6 +11,7 @@ view_size = 70
 class KChart:
     def __init__(self, ax):
         self._ax = ax
+        self._vol_ax = self._ax.twinx()
         self._view_size = view_size
         self._window_size = window_size
         self._account = None
@@ -78,13 +79,14 @@ class KChart:
         self._set_labels()
         self._ax.set_xlim(-1, len(quotes))
         self._ax.set_ylim(y_min_limit, y_max_limit)
+        self._draw_vol()
         return
 
     def _get_zero_axis_price(self):
-        if len(self._quotes) > 2:
+        if len(self._quotes) == 2:
+            return self._quotes.iloc[self._window_size - 1]['close']
+        elif len(self._quotes) > 2:
             return self._quotes.iloc[self._window_size - 2]['close']
-        elif len(self._quotes) == 2:
-            self._quotes.iloc[self._window_size - 1]['close']
         else:
             return 1
 
@@ -192,4 +194,45 @@ class KChart:
             return "{:g}%".format(percent)
 
         self._ax.get_yaxis().set_major_formatter(ticker.FuncFormatter(_y_formatter))
+        return
+
+    def _draw_vol(self):
+
+        self._vol_ax.clear()
+
+        quotes = self._quotes
+        vol30 = quotes['vol_ma30'].values
+        vol60 = quotes['vol_ma60'].values
+
+        self._vol_ax.plot(vol30, color='b', linewidth=1)
+        self._vol_ax.plot(vol60, color='firebrick', linewidth=1)
+        self._vol_ax.annotate('VMA30-', xy=(0.02, 0.20), xycoords="axes fraction",
+                              va='top', ha='left', weight='extra bold',
+                              color='b', fontsize=config.SMALL_FONT_SIZE)
+        self._vol_ax.annotate('VMA60-', xy=(0.1, 0.20), xycoords="axes fraction",
+                              va='top', ha='left', weight='extra bold',
+                              color='firebrick', fontsize=config.SMALL_FONT_SIZE)
+
+        for i in range(len(quotes)):
+            close_price = quotes.loc[:, 'close'].iloc[i]
+            open_price = quotes.loc[:, 'open'].iloc[i]
+            vol = quotes.loc[:, 'vol'].iloc[i]
+            if close_price > open_price:
+                color = 'gray'
+                self._vol_ax.add_patch(patches.Rectangle((i - 0.4, 0), 0.8, vol,
+                                                         fill=True, color=color, alpha=0.5))
+            else:
+                color = 'silver'
+                self._vol_ax.add_patch(patches.Rectangle((i - 0.4, 0), 0.8, vol,
+                                                         fill=True, color=color, alpha=0.5))
+
+        y_max = np.max(quotes['vol'].values)
+        y_max_limit = y_max * 6
+        self._vol_ax.set_xlim(-1, len(quotes))
+        self._vol_ax.set_ylim(0, y_max_limit)
+
+        def _y_formatter(y, p):
+            return ""
+
+        self._vol_ax.get_yaxis().set_major_formatter(ticker.FuncFormatter(_y_formatter))
         return
