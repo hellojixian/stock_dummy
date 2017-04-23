@@ -21,7 +21,7 @@ from Strategies.LuckyOne import handle_data
 sec_list = ['sh600552',
             'sh600201']
 
-start_date = '2015-10-10'
+start_date = '2015-01-10'
 end_date = '2015-12-30'
 
 init_cash = 100000

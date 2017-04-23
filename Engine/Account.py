@@ -3,9 +3,10 @@ Account 主要管理可共享的资金账户信息和最近交易信息
 独立出一个对象为了实现多个线程同时回测
 '''
 
+from datetime import datetime, timedelta
 
 class Account:
-    def __init__(self, init_cash=10000, baseline_sec=[]):
+    def __init__(self, init_cash=10000):
         self._init_cash = init_cash
         self._cash = init_cash
         self._vol = {}
@@ -18,6 +19,17 @@ class Account:
         self.current_date = None
         self.current_time = None
         pass
+
+    def get_current_date(self):
+        current_date = datetime.strptime(self.current_date, "%Y-%m-%d").date()
+        return current_date
+
+    def get_current_time(self):
+        current_time = self.current_time
+        h = current_time[0:2]
+        m = current_time[3:5]
+        seconds = int(h) * 3600 + int(m) * 60
+        return timedelta(seconds=seconds)
 
     def daily_update(self):
         """

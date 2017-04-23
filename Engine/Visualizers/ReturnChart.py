@@ -144,6 +144,9 @@ class ReturnChart:
                               ha='right', va='bottom',
                               fontsize=config.SMALL_FONT_SIZE)
 
+        for tick in self._ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(config.MIDDLE_FONT_SIZE)
+
         # 标记统计信息
         self._ax.annotate('Durtion: {}d'.format(i + 1), xy=(0.99, 0.94),
                           xycoords="axes fraction",

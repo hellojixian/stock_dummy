@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import os
 
+
 class Engine:
     def __init__(self, account=None, sec_id="", start_date="", end_date="", data_callback=None):
         self._sec_id = sec_id
@@ -48,19 +49,14 @@ class Engine:
 
     def get_security_price(self):
         # 从account里面获取时间 获取当时收盘价
-        current_date = self.get_account().current_date
-        current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
-        current_time = self.get_account().current_time
-        h = current_time[0:2]
-        m = current_time[3:5]
-        seconds = int(h) * 3600 + int(m) * 60
-        min_pos = self._minutes_data.loc[current_date]['time'].tolist().index(timedelta(seconds=seconds))
+        current_date = self.get_account().get_current_date()
+        current_time = self.get_account().get_current_time()
+        min_pos = self._minutes_data.loc[current_date]['time'].tolist().index(current_time)
         rec = self._minutes_data.loc[current_date].iloc[min_pos]
         return rec['close']
 
     def has_data(self):
-        current_date = self.get_account().current_date
-        current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
+        current_date = self.get_account().get_current_date()
         return current_date in self._minutes_data.index.values
 
     def get_security_init_price(self):
@@ -80,20 +76,25 @@ class Engine:
     def get_daily_data(self):
         return self._daily_data
 
+    def get_minute_data(self):
+        current_date = self.get_account().get_current_date()
+        prev_date = self.get_prev_date()
+        return self._minutes_data.loc[[prev_date, current_date]]
+
     def get_sec_id(self):
         return self._sec_id
 
-    def get_prev_date(self):
-        current_date = datetime.strptime(self._account.current_date, "%Y-%m-%d").date()
+    def get_prev_date(self, offest=1):
+        current_date = self.get_account().get_current_date()
         pos = self._daily_data.index.get_loc(current_date)
-        return self._daily_data.iloc[(pos - 1)].name
+        return self._daily_data.iloc[(pos - offest)].name
 
     def get_prev_close(self):
         prev_date = self.get_prev_date()
         return self._daily_data.loc[prev_date]['close']
 
     def get_open_price(self):
-        current_date = datetime.strptime(self._account.current_date, "%Y-%m-%d").date()
+        current_date = self.get_account().get_current_date()
         return self._daily_data.loc[current_date]['open']
 
     # 初始化数据，
@@ -107,8 +108,9 @@ class Engine:
                                                 self._start_date,
                                                 range=self._daily_prepend_window)
         self._daily_data = extract_daily_features(prepend_data.append(data))
+        prev_date = self._daily_data.iloc[(self._daily_prepend_window - 2)].name
         self._minutes_data = fetch_minutes_data(self._sec_id,
-                                                self._start_date,
+                                                prev_date,
                                                 self._end_date)
         pass
 
@@ -120,13 +122,13 @@ class Engine:
         gs = mpl.gridspec.GridSpec(13, 12)
 
         self._visualizers = {
-            'kchart': KChart(self._figure.add_subplot(gs[0:5, 0:6])),
-            'realtime': RealtimeChart(self._figure.add_subplot(gs[0:5, 6:12])),
+            'kchart': KChart(self._figure.add_subplot(gs[0:5, 0:7])),
+            'realtime': RealtimeChart(self._figure.add_subplot(gs[0:5, 7:12])),
             'environment_analysis': EnvironmentAnalysis(self._figure.add_subplot(gs[5:9, 0:4])),
             'realtime_analysis': RealtimeAnalysis(self._figure.add_subplot(gs[5:9, 4:8])),
             'pattern_graph': PatternGraph(self._figure.add_subplot(gs[5:9, 8:12])),
-            'return': ReturnChart(self._figure.add_subplot(gs[9:13, 0:6])),
-            'pattern_state': PatternState(self._figure.add_subplot(gs[9:13, 6:12])),
+            'return': ReturnChart(self._figure.add_subplot(gs[9:13, 0:7])),
+            'pattern_state': PatternState(self._figure.add_subplot(gs[9:13, 7:12])),
         }
 
         self._figure.canvas.set_window_title('Back Test - Sec: {} Date: {} {}'
@@ -206,5 +208,5 @@ class Engine:
         self._data_callback(self.get_account(), data)
 
         self._tick_count += 1
-        print('tick_count:',self._tick_count)
+        print('tick_count:', self._tick_count)
         return

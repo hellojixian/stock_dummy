@@ -42,16 +42,19 @@ class KChart:
         self._ax.grid(which='minor', alpha=0.2)
         self._ax.grid(which='major', alpha=0.5)
 
-        self._ax.set_yticks(np.linspace(y_min_limit, y_max_limit, 11))
-        self._ax.set_yticks(np.linspace(y_min_limit, y_max_limit, 21), minor=True)
-        self._ax.set_xticks(range(0, len(quotes), int(len(quotes) * 1 / 6)))
-        self._ax.set_xticklabels([quotes.ix[index].name for index in self._ax.get_xticks()])
-
         self._ax.plot(quotes['close'].values, color='black', linewidth=1, alpha=0.3)
         self._ax.plot(quotes['ma5'].values, color='b', linewidth=1)
         self._ax.plot(quotes['ma10'].values, color='firebrick', linewidth=1)
         self._ax.plot(quotes['ma30'].values, color='forestgreen', linewidth=1)
         self._ax.plot(quotes['ma60'].values, color='darkmagenta', linewidth=1)
+
+        self._ax.set_yticks(np.linspace(y_min_limit, y_max_limit, 11))
+        self._ax.set_yticks(np.linspace(y_min_limit, y_max_limit, 21), minor=True)
+
+        for tick in self._ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(config.MIDDLE_FONT_SIZE)
+        for tick in self._ax.yaxis.get_major_ticks():
+            tick.label.set_fontsize(config.MIDDLE_FONT_SIZE)
 
         for i in range(len(quotes)):
             close_price = quotes.loc[:, 'close'].iloc[i]
@@ -77,9 +80,12 @@ class KChart:
         self._draw_zero_axis()
         self._draw_annotations()
         self._set_labels()
-        self._ax.set_xlim(-1, len(quotes))
-        self._ax.set_ylim(y_min_limit, y_max_limit)
         self._draw_vol()
+
+        self._ax.set_ylim(y_min_limit * 0.99, y_max_limit * 1.01)
+        self._ax.set_xlim(-1, len(quotes))
+        self._ax.set_xticks(range(0, len(quotes), int(len(quotes) * 1 / 6)))
+        self._ax.set_xticklabels([quotes.ix[index].name for index in self._ax.get_xticks()])
         return
 
     def _get_zero_axis_price(self):
