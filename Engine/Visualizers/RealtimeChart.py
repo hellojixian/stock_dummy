@@ -101,9 +101,9 @@ class RealtimeChart:
                       [price, price],
                       color='black', alpha=1,
                       linestyle='--', linewidth=0.5)
-        self._ax.annotate('pc: {:.2f}'.format(price),
+        self._ax.annotate('PC: {:.2f}'.format(price),
                           xy=(10, price), xycoords='data',
-                          xytext=(0, +15), textcoords='offset points',
+                          xytext=(0, +25), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color='black', alpha=0.5),
                           color="black", weight='bold', alpha=0.5,
                           ha='center', va='bottom',
@@ -160,8 +160,8 @@ class RealtimeChart:
         prev_close = self._engine.get_daily_data().loc[prev_date]['close']
         prev_open_change = (prev_open - prev_2_close) / prev_2_close * 100
         prev_close_change = (prev_close - prev_2_close) / prev_2_close * 100
-        prev_high = self._engine.get_daily_data().loc[prev_date]['high']
-        prev_low = self._engine.get_daily_data().loc[prev_date]['low']
+        prev_high = np.max(self._quotes['high'].values[0:240])
+        prev_low = np.min(self._quotes['low'].values[0:240])
 
         if prev_open > prev_2_close:
             color = 'red'
@@ -173,7 +173,7 @@ class RealtimeChart:
         else:
             prev_open_sign = ''
 
-        self._ax.annotate('o: {:.2f} ({}{:.2f}%)'.format(prev_open, prev_open_sign, prev_open_change),
+        self._ax.annotate('O: {:.2f} ({}{:.2f}%)'.format(prev_open, prev_open_sign, prev_open_change),
                           xy=(0, prev_open), xycoords='data',
                           xytext=(10, -20), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color=color, alpha=0.6),
@@ -183,11 +183,11 @@ class RealtimeChart:
                           fontsize=config.SMALL_FONT_SIZE)
         if prev_close > prev_2_close:
             color = 'red'
-            pos = 25
+            pos = 18
             va = 'bottom'
         else:
             color = 'green'
-            pos = 25
+            pos = 18
             va = 'top'
 
         if prev_close_change >= 0:
@@ -195,7 +195,7 @@ class RealtimeChart:
         else:
             prev_close_sign = ''
 
-        self._ax.annotate('pc: {:.2f} ({}{:.2f}%)'.format(prev_close, prev_close_sign, prev_close_change),
+        self._ax.annotate('PC: {:.2f} ({}{:.2f}%)'.format(prev_close, prev_close_sign, prev_close_change),
                           xy=(239, prev_close), xycoords='data',
                           xytext=(-10, pos), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color=color, alpha=1),
@@ -203,13 +203,22 @@ class RealtimeChart:
                           ha='center', va=va,
                           fontsize=config.SMALL_FONT_SIZE)
 
+        # 标记当天价格
         current_date = self._account.get_current_date()
         current_open = self._engine.get_daily_data().loc[current_date]['open']
         current_close = self._engine.get_daily_data().loc[current_date]['close']
+        current_high = np.max(self._quotes['high'].values[240:480])
+        current_low = np.min(self._quotes['low'].values[240:480])
         current_open_change = (current_open - prev_close) / prev_close * 100
         current_close_change = (current_close - prev_close) / prev_close * 100
-        current_high = self._engine.get_daily_data().loc[current_date]['high']
-        current_low = self._engine.get_daily_data().loc[current_date]['low']
+        current_high_change = (current_high - prev_close) / prev_close * 100
+        current_high_pos = list(self._quotes['high'].values[240:480]).index(current_high) + 240
+        current_high_time = self._quotes.iloc[current_high_pos]['time']
+        current_low_change = (current_low - prev_close) / prev_close * 100
+        current_low_pos = list(self._quotes['low'].values[240:480]).index(current_low) + 240
+        current_low_time = self._quotes.iloc[current_low_pos]['time']
+
+        # 标记开盘价格
         if current_open > prev_close:
             color = 'red'
         else:
@@ -219,13 +228,15 @@ class RealtimeChart:
             current_open_sign = '+'
         else:
             current_open_sign = ''
-        self._ax.annotate('o: {:.2f} ({}{:.2f}%)'.format(current_open, current_open_sign, current_open_change),
+        self._ax.annotate('O: {:.2f} ({}{:.2f}%)'.format(current_open, current_open_sign, current_open_change),
                           xy=(240, current_open), xycoords='data',
                           xytext=(10, -20), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color=color, alpha=1),
                           color=color, weight='bold', alpha=1,
                           ha='center', va='top',
                           fontsize=config.SMALL_FONT_SIZE)
+
+        # 标记当天收盘价格
         if current_close > prev_close:
             color = 'red'
             pos = 25
@@ -240,7 +251,7 @@ class RealtimeChart:
         else:
             current_close_sign = ''
 
-        self._ax.annotate('c: {:.2f} ({}{:.2f}%)'.format(current_close, current_close_sign, current_close_change),
+        self._ax.annotate('C: {:.2f} ({}{:.2f}%)'.format(current_close, current_close_sign, current_close_change),
                           xy=(480, current_close), xycoords='data',
                           xytext=(-10, pos), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color=color, alpha=1),
@@ -248,7 +259,61 @@ class RealtimeChart:
                           backgroundcolor='white',
                           ha='center', va=va,
                           fontsize=config.SMALL_FONT_SIZE)
+
+        # 标记当天最高价和时间
+        if current_high > prev_close:
+            color = 'red'
+        else:
+            color = 'green'
+
+        if current_high_change >= 0:
+            current_high_sign = '+'
+        else:
+            current_high_sign = ''
+
+        self._ax.annotate('H: {:.2f} ({}{:.2f}%)\nT:{}'
+                          .format(current_high, current_high_sign,
+                                  current_high_change,
+                                  self._format_time(current_high_time)),
+                          xy=(current_high_pos, current_high), xycoords='data',
+                          xytext=(-30, +30), textcoords='offset points',
+                          arrowprops=dict(arrowstyle="->", color=color, alpha=1),
+                          color=color, weight='bold', alpha=1,
+                          ha='left', va='bottom',
+                          fontsize=config.SMALL_FONT_SIZE)
+
+        # 标记当天最低价和时间
+        if current_low > prev_close:
+            color = 'darkred'
+        else:
+            color = 'darkgreen'
+
+        if current_low_change >= 0:
+            current_low_sign = '+'
+        else:
+            current_low_sign = ''
+
+        self._ax.annotate('L: {:.2f} ({}{:.2f}%)\nT: {}'
+                          .format(current_low, current_low_sign,
+                                  current_low_change,
+                                  self._format_time(current_low_time)),
+                          xy=(current_low_pos, current_low), xycoords='data',
+                          xytext=(-25, -35), textcoords='offset points',
+                          arrowprops=dict(arrowstyle="->", color=color, alpha=1),
+                          color=color, weight='bold', alpha=1,
+                          ha='left', va='top',
+                          fontsize=config.SMALL_FONT_SIZE)
         return
+
+    def _format_time(self, time):
+        h = int(time.seconds / 3600)
+        m = int((time.seconds % 3600) / 60)
+        time_str = "{:02d}:{:02d}".format(h, m)
+        if h < 12:
+            time_str += ' AM'
+        else:
+            time_str += ' PM'
+        return time_str
 
     def _get_ylim(self):
         margin = 0.1

@@ -155,7 +155,7 @@ class KChart:
         prev_close_price = self._get_zero_axis_price()
         close_price = self._get_latest_price()
         price_change = round(((close_price - prev_close_price) / prev_close_price) * 100, 2)
-        self._ax.annotate('pc: {:.2f}'.format(prev_close_price),
+        self._ax.annotate('PC: {:.2f}'.format(prev_close_price),
                           xy=(self._window_size - 2, prev_close_price), xycoords='data',
                           xytext=(-15, +15), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color='black', alpha=0.8),
@@ -175,7 +175,7 @@ class KChart:
             sign = ''
             y_pos = -30
 
-        self._ax.annotate('c: {:.2f} ({}{}%)'.format(close_price, sign, price_change),
+        self._ax.annotate('C: {:.2f} ({}{}%)'.format(close_price, sign, price_change),
                           xy=(self._window_size - 1, close_price), xycoords='data',
                           xytext=(-10, y_pos), textcoords='offset points',
                           arrowprops=dict(arrowstyle="->", color=color, alpha=1),
