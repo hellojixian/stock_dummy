@@ -7,6 +7,7 @@
 
 from DataProviders.DailyData import *
 from DataProviders.MinutesData import *
+from DataProviders.IndexData import *
 from Engine.Visualizers.KChart import *
 from Engine.Visualizers.RealtimeChart import *
 from Engine.Visualizers.RealtimeAnalysis import *
@@ -14,7 +15,7 @@ from Engine.Visualizers.ReturnChart import *
 from Engine.Visualizers.PatternState import *
 from Engine.Visualizers.PatternGraph import *
 from Engine.Visualizers.EnvAnalysis import *
-from datetime import datetime, timedelta
+from Engine.Data.StaticEnv import get_static_env
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import os
@@ -23,11 +24,13 @@ import os
 class Engine:
     def __init__(self, account=None, sec_id="", start_date="", end_date="", data_callback=None):
         self._sec_id = sec_id
+        self._index_id = 'sh000001'
         self._account = account
         self._start_date = start_date
         self._end_date = end_date
         self._data_callback = data_callback
         self._daily_data = None
+        self._index_daily_data = None
         self._minutes_data = None
         self._daily_prepend_window = 60
         self._tick_count = 0
@@ -76,6 +79,12 @@ class Engine:
     def get_daily_data(self):
         return self._daily_data
 
+    def get_index_daily_data(self):
+        return self._index_daily_data
+
+    def get_static_env(self):
+        return get_static_env(self._account.get_current_date(), self)
+
     def get_minute_data(self):
         current_date = self.get_account().get_current_date()
         prev_date = self.get_prev_date()
@@ -101,6 +110,7 @@ class Engine:
     def _prepare_data(self):
         self._daily_data = None
         self._minutes_data = None
+        # 初始化每日数据
         data = fetch_daily_data(self._sec_id,
                                 self._start_date,
                                 self._end_date)
@@ -108,6 +118,17 @@ class Engine:
                                                 self._start_date,
                                                 range=self._daily_prepend_window)
         self._daily_data = extract_daily_features(prepend_data.append(data))
+
+        # 初始化每日指数数据
+        index_data = fetch_index_data(self._index_id,
+                                      self._start_date,
+                                      self._end_date)
+        prepend_index_data = fetch_index_history_data(self._index_id,
+                                                      self._start_date,
+                                                      range=self._daily_prepend_window)
+        self._index_daily_data = extract_index_features(prepend_index_data.append(index_data))
+
+        # 初始化分钟数据
         prev_date = self._daily_data.iloc[(self._daily_prepend_window - 2)].name
         self._minutes_data = fetch_minutes_data(self._sec_id,
                                                 prev_date,

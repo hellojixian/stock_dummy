@@ -95,6 +95,19 @@ limit:
 但是总的UI输出框架可以由引擎负责，这样方便模块化处理               
 ```
 
+static environment
+
+prev3_bar
+prev3_change    +10 to -10
+prev2_change    +10 to -10
+prev2_bar
+prev2_open_change
+prev2_upline
+prev2_downline
+prev2_amp_abs   0 to 20
+prev_change     +10 to -10
+
+
 * 提供动态数据 tick分钟
 * 提供接口允许策略获取必须的数据
 * 引擎可视化部分也可以有接口来获取自己需要的那部分数据

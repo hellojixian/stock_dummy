@@ -162,7 +162,14 @@ class RealtimeChart:
         prev_close_change = (prev_close - prev_2_close) / prev_2_close * 100
         prev_high = np.max(self._quotes['high'].values[0:240])
         prev_low = np.min(self._quotes['low'].values[0:240])
+        prev_high_change = (prev_high - prev_close) / prev_close * 100
+        prev_high_pos = list(self._quotes['high'].values[0:240]).index(prev_high)
+        prev_high_time = self._quotes.iloc[prev_high_pos]['time']
+        prev_low_change = (prev_low - prev_close) / prev_close * 100
+        prev_low_pos = list(self._quotes['low'].values[0:240]).index(prev_low)
+        prev_low_time = self._quotes.iloc[prev_low_pos]['time']
 
+        # 标记昨日开盘价格
         if prev_open > prev_2_close:
             color = 'red'
         else:
@@ -181,6 +188,7 @@ class RealtimeChart:
                           backgroundcolor='white',
                           ha='center', va='top',
                           fontsize=config.SMALL_FONT_SIZE)
+        # 标记昨日收盘价格
         if prev_close > prev_2_close:
             color = 'red'
             pos = 18
@@ -198,9 +206,55 @@ class RealtimeChart:
         self._ax.annotate('PC: {:.2f} ({}{:.2f}%)'.format(prev_close, prev_close_sign, prev_close_change),
                           xy=(239, prev_close), xycoords='data',
                           xytext=(-10, pos), textcoords='offset points',
-                          arrowprops=dict(arrowstyle="->", color=color, alpha=1),
+                          arrowprops=dict(arrowstyle="->", color='black', alpha=1),
                           color=color, weight='bold', alpha=1,
                           ha='center', va=va,
+                          fontsize=config.SMALL_FONT_SIZE)
+
+        # 标记昨天最高价和时间
+        if prev_high > prev_2_close:
+            color = 'm'
+        else:
+            color = 'seagreen'
+
+        if prev_high_change >= 0:
+            prev_high_sign = '+'
+        else:
+            prev_high_sign = ''
+
+        self._ax.annotate('H: {:.2f} ({}{:.2f}%)\nT: {}'
+                          .format(prev_high, prev_high_sign,
+                                  prev_high_change,
+                                  self._format_time(prev_high_time)),
+                          xy=(prev_high_pos, prev_high), xycoords='data',
+                          xytext=(-30, +30), textcoords='offset points',
+                          arrowprops=dict(arrowstyle="->", color=color, alpha=1),
+                          color=color, weight='bold', alpha=1,
+                          ha='left', va='bottom',
+                          backgroundcolor='white',
+                          fontsize=config.SMALL_FONT_SIZE)
+
+        # 标记昨天最低价和时间
+        if prev_low > prev_2_close:
+            color = 'm'
+        else:
+            color = 'seagreen'
+
+        if prev_low_change >= 0:
+            prev_low_sign = '+'
+        else:
+            prev_low_sign = ''
+
+        self._ax.annotate('L: {:.2f} ({}{:.2f}%)\nT: {}'
+                          .format(prev_low, prev_low_sign,
+                                  prev_low_change,
+                                  self._format_time(prev_low_time)),
+                          xy=(prev_low_pos, prev_low), xycoords='data',
+                          xytext=(-25, -35), textcoords='offset points',
+                          arrowprops=dict(arrowstyle="->", color=color, alpha=1),
+                          color=color, weight='bold', alpha=1,
+                          ha='left', va='top',
+                          backgroundcolor='white',
                           fontsize=config.SMALL_FONT_SIZE)
 
         # 标记当天价格
@@ -262,7 +316,7 @@ class RealtimeChart:
 
         # 标记当天最高价和时间
         if current_high > prev_close:
-            color = 'red'
+            color = 'darkred'
         else:
             color = 'green'
 
@@ -271,7 +325,7 @@ class RealtimeChart:
         else:
             current_high_sign = ''
 
-        self._ax.annotate('H: {:.2f} ({}{:.2f}%)\nT:{}'
+        self._ax.annotate('H: {:.2f} ({}{:.2f}%)\nT: {}'
                           .format(current_high, current_high_sign,
                                   current_high_change,
                                   self._format_time(current_high_time)),
