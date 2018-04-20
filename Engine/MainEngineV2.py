@@ -93,10 +93,10 @@ class Engine:
     def get_sec_id(self):
         return self._sec_id
 
-    def get_prev_date(self, offest=1):
+    def get_prev_date(self, offset=1):
         current_date = self.get_account().get_current_date()
         pos = self._daily_data.index.get_loc(current_date)
-        return self._daily_data.iloc[(pos - offest)].name
+        return self._daily_data.iloc[(pos - offset)].name
 
     def get_prev_close(self):
         prev_date = self.get_prev_date()

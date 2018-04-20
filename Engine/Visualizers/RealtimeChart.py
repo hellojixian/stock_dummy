@@ -87,7 +87,7 @@ class RealtimeChart:
         return
 
     def _get_prev_zero_axis_price(self):
-        prev_2_date = self._engine.get_prev_date(offest=2)
+        prev_2_date = self._engine.get_prev_date(offset=2)
         return self._engine.get_daily_data().loc[prev_2_date]['close']
 
     def _get_zero_axis_price(self):
@@ -117,7 +117,7 @@ class RealtimeChart:
         return
 
     def _draw_changes(self):
-        prev_date = self._engine.get_prev_date(offest=1)
+        prev_date = self._engine.get_prev_date(offset=1)
         prev_open = self._engine.get_daily_data().loc[prev_date]['open']
         prev_close = self._engine.get_daily_data().loc[prev_date]['close']
         if prev_close > prev_open:
@@ -152,10 +152,10 @@ class RealtimeChart:
         return
 
     def _annotate_price(self):
-        prev_2_date = self._engine.get_prev_date(offest=2)
+        prev_2_date = self._engine.get_prev_date(offset=2)
         prev_2_close = self._engine.get_daily_data().loc[prev_2_date]['close']
 
-        prev_date = self._engine.get_prev_date(offest=1)
+        prev_date = self._engine.get_prev_date(offset=1)
         prev_open = self._engine.get_daily_data().loc[prev_date]['open']
         prev_close = self._engine.get_daily_data().loc[prev_date]['close']
         prev_open_change = (prev_open - prev_2_close) / prev_2_close * 100

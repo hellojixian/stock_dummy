@@ -1,6 +1,7 @@
 import Common.config as config
 from sqlalchemy.orm import sessionmaker
 from FeatureExtractors.Timestep import *
+from FeatureExtractors.OverlapStudies import *
 
 
 def fetch_index_data(code, start_date, end_date):
@@ -62,4 +63,7 @@ def fetch_index_history_data(code, start_date, range):
 
 
 def extract_index_features(data):
+    # overlap studies
+    data = extract_ma(data)
+    data = extract_sar(data)
     return data
